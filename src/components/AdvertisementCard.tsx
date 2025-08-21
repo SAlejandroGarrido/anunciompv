@@ -1,0 +1,186 @@
+import { Edit, Trash2, Pause, Play, Phone, MessageCircle, Instagram, MapPin } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Advertisement } from '@/types/advertisement';
+
+interface AdvertisementCardProps {
+  advertisement: Advertisement;
+  onEdit: (ad: Advertisement) => void;
+  onDelete: (id: string) => void;
+  onToggleStatus: (id: string) => void;
+}
+
+const AdvertisementCard = ({ advertisement, onEdit, onDelete, onToggleStatus }: AdvertisementCardProps) => {
+  const getStatusColor = (status: Advertisement['status']) => {
+    switch (status) {
+      case 'active':
+        return 'bg-success text-success-foreground';
+      case 'paused':
+        return 'bg-warning text-warning-foreground';
+      case 'inactive':
+        return 'bg-muted text-muted-foreground';
+      default:
+        return 'bg-muted text-muted-foreground';
+    }
+  };
+
+  const getStatusText = (status: Advertisement['status']) => {
+    switch (status) {
+      case 'active':
+        return 'Ativo';
+      case 'paused':
+        return 'Pausado';
+      case 'inactive':
+        return 'Inativo';
+      default:
+        return 'Inativo';
+    }
+  };
+
+  const handleWhatsApp = () => {
+    if (advertisement.whatsapp) {
+      window.open(`https://wa.me/${advertisement.whatsapp}`, '_blank');
+    }
+  };
+
+  const handleInstagram = () => {
+    if (advertisement.instagram) {
+      const username = advertisement.instagram.replace('@', '');
+      window.open(`https://instagram.com/${username}`, '_blank');
+    }
+  };
+
+  const handleLocation = () => {
+    if (advertisement.location.googleMapsUrl) {
+      window.open(advertisement.location.googleMapsUrl, '_blank');
+    } else if (advertisement.location.latitude && advertisement.location.longitude) {
+      window.open(`https://maps.google.com/?q=${advertisement.location.latitude},${advertisement.location.longitude}`, '_blank');
+    }
+  };
+
+  return (
+    <Card className="group hover:shadow-medium transition-all duration-300 bg-gradient-card border-border/50">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <h3 className="font-semibold text-lg text-foreground group-hover:text-primary transition-colors">
+              {advertisement.name}
+            </h3>
+            <div className="flex items-center gap-2 mt-1">
+              <Badge variant="secondary" className="text-xs">
+                {advertisement.category}
+              </Badge>
+              <Badge className={`text-xs ${getStatusColor(advertisement.status)}`}>
+                {getStatusText(advertisement.status)}
+              </Badge>
+            </div>
+          </div>
+          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onEdit(advertisement)}
+              className="h-8 w-8"
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onToggleStatus(advertisement.id)}
+              className="h-8 w-8"
+            >
+              {advertisement.status === 'active' ? (
+                <Pause className="h-4 w-4" />
+              ) : (
+                <Play className="h-4 w-4" />
+              )}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onDelete(advertisement.id)}
+              className="h-8 w-8 text-destructive hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="pb-3">
+        {advertisement.photos && advertisement.photos.length > 0 && (
+          <div className="w-full h-48 mb-4 rounded-lg overflow-hidden bg-muted">
+            <img
+              src={advertisement.photos[0]}
+              alt={advertisement.name}
+              className="w-full h-full object-cover transition-transform group-hover:scale-105"
+            />
+          </div>
+        )}
+
+        <p className="text-muted-foreground text-sm leading-relaxed mb-4 line-clamp-3">
+          {advertisement.description}
+        </p>
+
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <MapPin className="h-4 w-4 shrink-0" />
+            <span className="truncate">{advertisement.location.address}</span>
+          </div>
+        </div>
+      </CardContent>
+
+      <CardFooter className="pt-3 border-t border-border/50">
+        <div className="flex items-center justify-between w-full">
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.open(`tel:${advertisement.phone}`, '_self')}
+            >
+              <Phone className="h-3 w-3" />
+              {advertisement.phone}
+            </Button>
+          </div>
+          
+          <div className="flex gap-1">
+            {advertisement.whatsapp && (
+              <Button
+                variant="success"
+                size="sm"
+                onClick={handleWhatsApp}
+              >
+                <MessageCircle className="h-3 w-3" />
+                WhatsApp
+              </Button>
+            )}
+            
+            {advertisement.instagram && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleInstagram}
+              >
+                <Instagram className="h-3 w-3" />
+                Instagram
+              </Button>
+            )}
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLocation}
+            >
+              <MapPin className="h-3 w-3" />
+              Mapa
+            </Button>
+          </div>
+        </div>
+      </CardFooter>
+    </Card>
+  );
+};
+
+export default AdvertisementCard;

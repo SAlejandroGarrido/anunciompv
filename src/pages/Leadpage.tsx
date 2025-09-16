@@ -94,8 +94,9 @@ const Leadpage = () => {
         <div className="container mx-auto px-6">
           <nav className="flex justify-between items-center">
             <h1 className="text-2xl font-bold">Estância Turística</h1>
+            
+            {/* Menu principal com apenas categorias */}
             <div className="flex space-x-6">
-              <a href="#destaques" className="hover:text-orange-200 transition-colors">Destaques</a>
               <a href="#buscar" className="hover:text-orange-200 transition-colors">Pesquisar</a>
               {categoriesWithAds.map((category) => (
                 <a 
@@ -111,16 +112,15 @@ const Leadpage = () => {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section id="destaques" className="bg-orange-500 text-white py-12">
-        <div className="container mx-auto px-6 text-center">
-          <h2 className="text-4xl font-bold mb-8">Destaques da Região</h2>
-        </div>
-      </section>
-
-      {/* Principais Anúncios */}
-      <section className="py-12">
+      {/* Seção de Destaques - Separada e mais proeminente */}
+      <section className="bg-gradient-to-r from-orange-400 to-orange-600 text-white py-16">
         <div className="container mx-auto px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-5xl font-bold mb-4">🌟 Destaques da Região</h2>
+            <p className="text-xl text-orange-100">Descubra os melhores estabelecimentos e atrações</p>
+          </div>
+
+          {/* Carrossel de Destaques */}
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-center text-white">
@@ -182,10 +182,11 @@ const Leadpage = () => {
         </div>
       </section>
 
-      {/* Seção de Busca */}
-      <section id="buscar" className="bg-orange-500 text-white py-12">
+      {/* Seção de Busca - Redesenhada */}
+      <section id="buscar" className="bg-white py-16">
         <div className="container mx-auto px-6 text-center">
-          <h2 className="text-4xl font-bold mb-8">Encontre o que procura!</h2>
+          <h2 className="text-4xl font-bold mb-4 text-gray-800">🔍 Encontre o que procura!</h2>
+          <p className="text-xl text-gray-600 mb-8">Use os filtros abaixo para encontrar exatamente o que você precisa</p>
           
           <div className="max-w-4xl mx-auto">
             <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -194,12 +195,12 @@ const Leadpage = () => {
                   placeholder="Buscar por nome ou descrição..."
                   value={searchValue}
                   onChange={(e) => handleSearch(e.target.value)}
-                  className="bg-white text-gray-900"
+                  className="bg-gray-50 border-gray-300 text-gray-900 focus:border-orange-500 focus:ring-orange-500"
                 />
               </div>
               
               <Select onValueChange={handleCategoryFilter}>
-                <SelectTrigger className="bg-white text-gray-900 md:w-48">
+                <SelectTrigger className="bg-gray-50 border-gray-300 text-gray-900 md:w-48 focus:border-orange-500">
                   <SelectValue placeholder="Filtrar por Categoria" />
                 </SelectTrigger>
                 <SelectContent>
@@ -213,7 +214,7 @@ const Leadpage = () => {
               </Select>
 
               <Select onValueChange={handleLocationFilter}>
-                <SelectTrigger className="bg-white text-gray-900 md:w-48">
+                <SelectTrigger className="bg-gray-50 border-gray-300 text-gray-900 md:w-48 focus:border-orange-500">
                   <SelectValue placeholder="Filtrar por Localização" />
                 </SelectTrigger>
                 <SelectContent>
@@ -225,7 +226,7 @@ const Leadpage = () => {
               <Button 
                 onClick={clearFilters}
                 variant="outline" 
-                className="bg-white text-orange-500 border-white hover:bg-orange-50"
+                className="bg-orange-500 text-white border-orange-500 hover:bg-orange-600 hover:border-orange-600"
               >
                 Limpar Filtros
               </Button>

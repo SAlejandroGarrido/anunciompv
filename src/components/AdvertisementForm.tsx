@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Advertisement, AdvertisementFormData } from '@/types/advertisement';
@@ -39,6 +40,7 @@ const AdvertisementForm = ({
     instagram: '',
     address: '',
     category: '',
+    featured: false,
   });
 
   // Atualiza os dados do formulário quando o advertisement muda
@@ -53,6 +55,7 @@ const AdvertisementForm = ({
         instagram: advertisement.instagram || '',
         address: advertisement.location.address || '',
         category: advertisement.category || '',
+        featured: advertisement.featured || false,
       });
     } else {
       setFormData({
@@ -64,6 +67,7 @@ const AdvertisementForm = ({
         instagram: '',
         address: '',
         category: '',
+        featured: false,
       });
       setSelectedFiles([]);
       setPreviewUrls([]);
@@ -154,6 +158,7 @@ const AdvertisementForm = ({
         instagram: '',
         address: '',
         category: '',
+        featured: false,
       });
       setSelectedFiles([]);
       setPreviewUrls([]);
@@ -175,7 +180,7 @@ const AdvertisementForm = ({
     }
   };
 
-  const handleInputChange = (field: keyof AdvertisementFormData, value: string) => {
+  const handleInputChange = (field: keyof AdvertisementFormData, value: string | boolean) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -343,6 +348,17 @@ const AdvertisementForm = ({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="featured"
+                checked={formData.featured}
+                onCheckedChange={(checked) => handleInputChange('featured', checked as boolean)}
+              />
+              <Label htmlFor="featured" className="text-sm font-medium">
+                Destacar este anúncio
+              </Label>
             </div>
           </div>
 

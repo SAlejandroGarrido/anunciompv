@@ -19,6 +19,7 @@ export type Database = {
           category: string
           created_at: string
           description: string
+          featured: boolean
           id: string
           instagram: string | null
           location: Json
@@ -34,6 +35,7 @@ export type Database = {
           category: string
           created_at?: string
           description: string
+          featured?: boolean
           id?: string
           instagram?: string | null
           location?: Json
@@ -49,6 +51,7 @@ export type Database = {
           category?: string
           created_at?: string
           description?: string
+          featured?: boolean
           id?: string
           instagram?: string | null
           location?: Json

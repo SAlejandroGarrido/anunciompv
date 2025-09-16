@@ -49,6 +49,7 @@ export const useAdvertisements = () => {
         location: item.location || { address: '' },
         status: item.status as 'active' | 'paused' | 'inactive',
         category: item.category,
+        featured: item.featured || false,
         createdAt: new Date(item.created_at),
         updatedAt: new Date(item.updated_at)
       })) || [];
@@ -63,6 +64,39 @@ export const useAdvertisements = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Load featured advertisements
+  const loadFeaturedAdvertisements = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('advertisements')
+        .select('*')
+        .eq('featured', true)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      return data?.map(item => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        photos: item.photos || [],
+        phone: item.phone,
+        whatsapp: item.whatsapp,
+        instagram: item.instagram,
+        location: item.location || { address: '' },
+        status: item.status as 'active' | 'paused' | 'inactive',
+        category: item.category,
+        featured: item.featured || false,
+        createdAt: new Date(item.created_at),
+        updatedAt: new Date(item.updated_at)
+      })) || [];
+    } catch (error) {
+      console.error('Error loading featured advertisements:', error);
+      return [];
     }
   };
 
@@ -118,7 +152,8 @@ export const useAdvertisements = () => {
         instagram: formData.instagram || null,
         location: { address: formData.address },
         category: formData.category,
-        status: 'active'
+        status: 'active',
+        featured: formData.featured || false
       };
 
       const { data, error } = await supabase
@@ -141,6 +176,7 @@ export const useAdvertisements = () => {
         location: data.location || { address: '' },
         status: data.status as 'active' | 'paused' | 'inactive',
         category: data.category,
+        featured: data.featured || false,
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at)
       };
@@ -176,6 +212,7 @@ export const useAdvertisements = () => {
       if (data.category) updateData.category = data.category;
       if (data.status) updateData.status = data.status;
       if (data.photos) updateData.photos = data.photos;
+      if (data.featured !== undefined) updateData.featured = data.featured;
 
       const { error } = await supabase
         .from('advertisements')
@@ -250,6 +287,7 @@ export const useAdvertisements = () => {
     updateAdvertisement,
     deleteAdvertisement,
     toggleStatus,
+    loadFeaturedAdvertisements,
     categories: ['Hospedagem', 'Gastronomia', 'Atração Natural', 'Turismo Rural', 'Aventura', 'Cultura'],
     currentPage,
     totalPages,

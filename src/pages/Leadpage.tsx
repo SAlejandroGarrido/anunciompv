@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAdvertisements } from '@/hooks/useAdvertisements';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,7 +13,9 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { AutoCarousel, ManualCarousel } from '@/components/AutoCarousel';
 import { MapPin, Phone, MessageCircle, Instagram } from 'lucide-react';
+import { Advertisement } from '@/types/advertisement';
 
 const Leadpage = () => {
   const {
@@ -25,10 +27,13 @@ const Leadpage = () => {
     currentPage,
     totalPages,
     totalCount,
-    handlePageChange
+    handlePageChange,
+    loadFeaturedAdvertisements
   } = useAdvertisements();
 
+  const [featuredAds, setFeaturedAds] = useState<Advertisement[]>([]);
   const [searchValue, setSearchValue] = useState('');
+  const [currentFeaturedIndex, setCurrentFeaturedIndex] = useState(0);
 
   const handleSearch = (value: string) => {
     setSearchValue(value);
@@ -96,53 +101,41 @@ const Leadpage = () => {
                 <p>Carregando destaques...</p>
               </div>
             </div>
+          ) : featuredAds.length > 0 ? (
+            <div className="relative">
+              <Carousel className="w-full">
+                <CarouselContent>
+                  {featuredAds.map((ad, index) => (
+                    <CarouselItem key={ad.id} className="md:basis-1/2 lg:basis-1/4">
+                      <Card className="overflow-hidden hover:shadow-xl transition-shadow duration-300 bg-white/95 backdrop-blur-sm">
+                        <div className="aspect-video bg-gray-200 overflow-hidden">
+                          <AutoCarousel 
+                            images={ad.photos || []}
+                            alt={ad.name}
+                            className="transition-transform group-hover:scale-105"
+                          />
+                        </div>
+                        <CardContent className="p-4">
+                          <h3 className="font-bold text-lg mb-2 text-blue-700">{ad.name}</h3>
+                          <p className="text-gray-600 text-sm mb-4 line-clamp-2">{ad.description}</p>
+                          <Button 
+                            onClick={() => handleWhatsApp(ad.whatsapp || ad.phone, ad.name)}
+                            className="w-full bg-green-500 hover:bg-green-600 text-white"
+                          >
+                            Mais Informações
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2" />
+                <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2" />
+              </Carousel>
+            </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {advertisements.slice(0, 4).map((ad) => (
-                <Card key={ad.id} className="overflow-hidden hover:shadow-xl transition-shadow duration-300 bg-white/95 backdrop-blur-sm">
-                  <div className="aspect-video bg-gray-200 overflow-hidden relative">
-                    {ad.photos && ad.photos.length > 0 ? (
-                      ad.photos.length > 1 ? (
-                        <Carousel className="w-full h-full">
-                          <CarouselContent>
-                            {ad.photos.map((photo, index) => (
-                              <CarouselItem key={index}>
-                                <img 
-                                  src={photo} 
-                                  alt={`${ad.name} - ${index + 1}`}
-                                  className="w-full h-full object-cover"
-                                />
-                              </CarouselItem>
-                            ))}
-                          </CarouselContent>
-                          <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 bg-white/80 hover:bg-white" />
-                          <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 bg-white/80 hover:bg-white" />
-                        </Carousel>
-                      ) : (
-                        <img 
-                          src={ad.photos[0]} 
-                          alt={ad.name}
-                          className="w-full h-full object-cover"
-                        />
-                      )
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-                        <span className="text-gray-400 text-sm">Sem imagem</span>
-                      </div>
-                    )}
-                  </div>
-                  <CardContent className="p-4">
-                    <h3 className="font-bold text-lg mb-2 text-blue-700">{ad.name}</h3>
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{ad.description}</p>
-                    <Button 
-                      onClick={() => handleWhatsApp(ad.whatsapp || ad.phone, ad.name)}
-                      className="w-full bg-green-500 hover:bg-green-600 text-white"
-                    >
-                      Mais Informações
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="text-center py-12">
+              <p className="text-white/80">Nenhum anúncio em destaque no momento.</p>
             </div>
           )}
         </div>
@@ -256,35 +249,10 @@ const Leadpage = () => {
               {advertisements.map((ad) => (
                 <Card key={ad.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 bg-white/95 backdrop-blur-sm transform hover:scale-105 group">
                   <div className="aspect-video bg-gray-200 overflow-hidden relative">
-                    {ad.photos && ad.photos.length > 0 ? (
-                      ad.photos.length > 1 ? (
-                        <Carousel className="w-full h-full">
-                          <CarouselContent>
-                            {ad.photos.map((photo, index) => (
-                              <CarouselItem key={index}>
-                                <img 
-                                  src={photo} 
-                                  alt={`${ad.name} - ${index + 1}`}
-                                  className="w-full h-full object-cover"
-                                />
-                              </CarouselItem>
-                            ))}
-                          </CarouselContent>
-                          <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 bg-white/80 hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                          <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 bg-white/80 hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </Carousel>
-                      ) : (
-                        <img 
-                          src={ad.photos[0]} 
-                          alt={ad.name}
-                          className="w-full h-full object-cover"
-                        />
-                      )
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-                        <span className="text-gray-400 text-sm">Sem imagem</span>
-                      </div>
-                    )}
+                    <AutoCarousel 
+                      images={ad.photos || []}
+                      alt={ad.name}
+                    />
                   </div>
                   <CardContent className="p-4">
                     <h3 className="font-bold text-lg mb-2 text-blue-700">{ad.name}</h3>

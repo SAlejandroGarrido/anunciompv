@@ -14,6 +14,7 @@ export interface Advertisement {
   };
   status: 'active' | 'paused' | 'inactive';
   category: string;
+  featured: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,4 +35,5 @@ export interface AdvertisementFormData {
   instagram?: string;
   address: string;
   category: string;
+  featured: boolean;
 }

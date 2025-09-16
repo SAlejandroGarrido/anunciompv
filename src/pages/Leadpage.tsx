@@ -88,9 +88,9 @@ const Leadpage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600">
-      {/* Header */}
-      <header className="bg-orange-500 text-white py-4 shadow-lg">
+    <div className="min-h-screen bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 pt-32">{/* pt-32 para compensar header e busca fixos */}
+      {/* Header Fixo */}
+      <header className="bg-orange-500 text-white py-4 shadow-lg fixed top-0 left-0 right-0 z-50">
         <div className="container mx-auto px-6">
           <nav className="flex justify-between items-center">
             <h1 className="text-2xl font-bold">Estância Turística</h1>
@@ -111,6 +111,56 @@ const Leadpage = () => {
           </nav>
         </div>
       </header>
+
+      {/* Seção de Busca Fixa */}
+      <section id="buscar" className="bg-white py-4 shadow-md fixed top-16 left-0 right-0 z-40">
+        <div className="container mx-auto px-6">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <Input
+                  placeholder="Buscar por nome ou descrição..."
+                  value={searchValue}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="bg-gray-50 border-gray-300 text-gray-900 focus:border-orange-500 focus:ring-orange-500"
+                />
+              </div>
+              
+              <Select onValueChange={handleCategoryFilter}>
+                <SelectTrigger className="bg-gray-50 border-gray-300 text-gray-900 md:w-48 focus:border-orange-500">
+                  <SelectValue placeholder="Filtrar por Categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as Categorias</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select onValueChange={handleLocationFilter}>
+                <SelectTrigger className="bg-gray-50 border-gray-300 text-gray-900 md:w-48 focus:border-orange-500">
+                  <SelectValue placeholder="Filtrar por Localização" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as Localizações</SelectItem>
+                  {/* Aqui você pode adicionar localizações específicas baseadas nos dados */}
+                </SelectContent>
+              </Select>
+
+              <Button 
+                onClick={clearFilters}
+                variant="outline" 
+                className="bg-orange-500 text-white border-orange-500 hover:bg-orange-600 hover:border-orange-600"
+              >
+                Limpar Filtros
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Seção de Destaques - Separada e mais proeminente */}
       <section className="bg-gradient-to-r from-orange-400 to-orange-600 text-white py-16">
@@ -182,58 +232,6 @@ const Leadpage = () => {
         </div>
       </section>
 
-      {/* Seção de Busca - Redesenhada */}
-      <section id="buscar" className="bg-white py-16">
-        <div className="container mx-auto px-6 text-center">
-          <h2 className="text-4xl font-bold mb-4 text-gray-800">🔍 Encontre o que procura!</h2>
-          <p className="text-xl text-gray-600 mb-8">Use os filtros abaixo para encontrar exatamente o que você precisa</p>
-          
-          <div className="max-w-4xl mx-auto">
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
-              <div className="flex-1">
-                <Input
-                  placeholder="Buscar por nome ou descrição..."
-                  value={searchValue}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="bg-gray-50 border-gray-300 text-gray-900 focus:border-orange-500 focus:ring-orange-500"
-                />
-              </div>
-              
-              <Select onValueChange={handleCategoryFilter}>
-                <SelectTrigger className="bg-gray-50 border-gray-300 text-gray-900 md:w-48 focus:border-orange-500">
-                  <SelectValue placeholder="Filtrar por Categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as Categorias</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select onValueChange={handleLocationFilter}>
-                <SelectTrigger className="bg-gray-50 border-gray-300 text-gray-900 md:w-48 focus:border-orange-500">
-                  <SelectValue placeholder="Filtrar por Localização" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as Localizações</SelectItem>
-                  {/* Aqui você pode adicionar localizações específicas baseadas nos dados */}
-                </SelectContent>
-              </Select>
-
-              <Button 
-                onClick={clearFilters}
-                variant="outline" 
-                className="bg-orange-500 text-white border-orange-500 hover:bg-orange-600 hover:border-orange-600"
-              >
-                Limpar Filtros
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Categorias organizadas - só mostra se houver anúncios */}
       {categoriesWithAds.length > 0 && (

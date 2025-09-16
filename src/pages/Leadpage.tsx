@@ -120,9 +120,16 @@ const Leadpage = () => {
             <div className="relative">
               <Carousel 
                 className="w-full"
+                opts={{
+                  align: "start",
+                  loop: true,
+                  skipSnaps: false,
+                  dragFree: false,
+                }}
                 plugins={[
                   Autoplay({
                     delay: 3000,
+                    stopOnInteraction: true,
                   }),
                 ]}
               >

@@ -16,6 +16,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { AutoCarousel, ManualCarousel } from '@/components/AutoCarousel';
 import { MapPin, Phone, MessageCircle, Instagram } from 'lucide-react';
 import { Advertisement } from '@/types/advertisement';
+import Autoplay from "embla-carousel-autoplay";
 
 const Leadpage = () => {
   const {
@@ -117,7 +118,14 @@ const Leadpage = () => {
             </div>
           ) : featuredAds.length > 0 ? (
             <div className="relative">
-              <Carousel className="w-full">
+              <Carousel 
+                className="w-full"
+                plugins={[
+                  Autoplay({
+                    delay: 3000,
+                  }),
+                ]}
+              >
                 <CarouselContent>
                   {featuredAds.map((ad, index) => (
                     <CarouselItem key={ad.id} className="md:basis-1/2 lg:basis-1/4">

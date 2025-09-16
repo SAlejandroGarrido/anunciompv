@@ -18,7 +18,7 @@ const FilterDialog = ({ filters, onFiltersChange, categories, open, onOpenChange
   const handleFilterChange = (key: keyof AdvertisementFilters, value: string) => {
     onFiltersChange({
       ...filters,
-      [key]: value || undefined
+      [key]: value === 'all' ? undefined : value
     });
   };
 
@@ -42,14 +42,14 @@ const FilterDialog = ({ filters, onFiltersChange, categories, open, onOpenChange
           <div className="space-y-2">
             <Label htmlFor="category">Categoria</Label>
             <Select
-              value={filters.category || ''}
+              value={filters.category || 'all'}
               onValueChange={(value) => handleFilterChange('category', value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Todas as categorias" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as categorias</SelectItem>
+                <SelectItem value="all">Todas as categorias</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category} value={category}>
                     {category}
@@ -62,14 +62,14 @@ const FilterDialog = ({ filters, onFiltersChange, categories, open, onOpenChange
           <div className="space-y-2">
             <Label htmlFor="status">Status</Label>
             <Select
-              value={filters.status || ''}
+              value={filters.status || 'all'}
               onValueChange={(value) => handleFilterChange('status', value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Todos os status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os status</SelectItem>
+                <SelectItem value="all">Todos os status</SelectItem>
                 <SelectItem value="active">Ativo</SelectItem>
                 <SelectItem value="paused">Pausado</SelectItem>
                 <SelectItem value="inactive">Inativo</SelectItem>

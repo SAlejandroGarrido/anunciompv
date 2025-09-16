@@ -50,6 +50,11 @@ const Leadpage = () => {
     loadFeatured();
   }, []);
 
+  // Get categories that have advertisements
+  const categoriesWithAds = categories.filter(category => 
+    advertisements.some(ad => ad.category === category)
+  );
+
   const handleSearch = (value: string) => {
     setSearchValue(value);
     setFilters({ ...filters, search: value || undefined });
@@ -92,8 +97,9 @@ const Leadpage = () => {
             <div className="flex space-x-6">
               <a href="#destaques" className="hover:text-orange-200 transition-colors">Destaques</a>
               <a href="#buscar" className="hover:text-orange-200 transition-colors">Pesquisar</a>
-              <a href="#comercios" className="hover:text-orange-200 transition-colors">Comércios e Serviços</a>
-              <a href="#pontos" className="hover:text-orange-200 transition-colors">Pontos Turísticos</a>
+              {categoriesWithAds.length > 0 && (
+                <a href="#comercios" className="hover:text-orange-200 transition-colors">Comércios e Serviços</a>
+              )}
             </div>
           </nav>
         </div>
@@ -222,8 +228,9 @@ const Leadpage = () => {
         </div>
       </section>
 
-      {/* Comércios e Serviços organizados por categoria */}
-      <section id="comercios" className="py-12">
+      {/* Comércios e Serviços organizados por categoria - só mostra se houver anúncios */}
+      {categoriesWithAds.length > 0 && (
+        <section id="comercios" className="py-12">
         <div className="container mx-auto px-6">
           <div className="bg-orange-500 text-white py-8 mb-8 rounded-lg">
             <h2 className="text-4xl font-bold text-center">Comércios e Serviços</h2>
@@ -276,7 +283,7 @@ const Leadpage = () => {
           ) : (
             <div className="space-y-12">
               {/* Agrupar anúncios por categoria */}
-              {categories.map((category) => {
+              {categoriesWithAds.map((category) => {
                 const categoryAds = advertisements.filter(ad => ad.category === category);
                 
                 if (categoryAds.length === 0) return null;
@@ -423,7 +430,8 @@ const Leadpage = () => {
             </div>
           )}
         </div>
-      </section>
+        </section>
+      )}
 
       {/* Footer */}
       <footer className="bg-orange-500 text-white py-8">

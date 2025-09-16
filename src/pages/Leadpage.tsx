@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/pagination";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { AutoCarousel, ManualCarousel } from '@/components/AutoCarousel';
-import { MapPin, Phone, MessageCircle, Instagram } from 'lucide-react';
+import { MapPin, Phone, MessageCircle, Instagram, Search } from 'lucide-react';
 import { Advertisement } from '@/types/advertisement';
 import Autoplay from "embla-carousel-autoplay";
 
@@ -35,6 +35,17 @@ const Leadpage = () => {
   const [featuredAds, setFeaturedAds] = useState<Advertisement[]>([]);
   const [searchValue, setSearchValue] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  // Monitor scroll position
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 100);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Load featured advertisements on component mount
   useEffect(() => {
@@ -101,9 +112,9 @@ const Leadpage = () => {
   };
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 ${selectedCategory ? 'pt-32' : ''}`}>
-      {/* Header - só fica fixo quando categoria selecionada */}
-      <header className={`bg-orange-500 text-white py-4 shadow-lg ${selectedCategory ? 'fixed top-0 left-0 right-0 z-50' : ''}`}>
+    <div className={`min-h-screen bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 ${selectedCategory ? 'pt-32' : ''} ${isScrolled && !selectedCategory ? 'pt-20' : ''}`}>
+      {/* Header - fica fixo sempre durante o scroll */}
+      <header className={`bg-orange-500 text-white py-4 shadow-lg transition-all duration-300 ${(isScrolled || selectedCategory) ? 'fixed top-0 left-0 right-0 z-50' : ''}`}>
         <div className="container mx-auto px-6">
           <nav className="flex justify-between items-center">
             <div className="flex items-center">
@@ -663,15 +674,61 @@ const Leadpage = () => {
         </>
       )}
 
-      {/* Footer */}
-      <footer className="bg-orange-500 text-white py-8">
-        <div className="container mx-auto px-6 text-center">
-          <h3 className="text-2xl font-bold mb-4">Estância Turística</h3>
-          <p className="text-orange-100">
-            Descubra os melhores estabelecimentos e serviços da nossa região.
-          </p>
+      {/* Barra de Pesquisa Fixa no Rodapé */}
+      <div className="fixed bottom-0 left-0 right-0 z-40">
+        <div className="bg-white/95 backdrop-blur-sm border-t border-gray-200 py-4 shadow-lg">
+          <div className="container mx-auto px-6">
+            <div className="max-w-2xl mx-auto">
+              <div className="flex gap-3 items-center">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                  <Input
+                    placeholder="Buscar em todos os anúncios..."
+                    value={searchValue}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    className="pl-10 bg-white border-gray-300 text-gray-900 focus:border-orange-500 focus:ring-orange-500"
+                  />
+                </div>
+                
+                <Select onValueChange={handleCategoryFilter}>
+                  <SelectTrigger className="bg-white border-gray-300 text-gray-900 w-48 focus:border-orange-500">
+                    <SelectValue placeholder="Categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    {categoriesWithAds.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Button 
+                  onClick={clearFilters}
+                  variant="outline" 
+                  className="bg-orange-500 text-white border-orange-500 hover:bg-orange-600 hover:border-orange-600 shrink-0"
+                >
+                  Limpar
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
-      </footer>
+
+        {/* Footer - agora conectado com a barra de pesquisa */}
+        <footer className="bg-orange-500 text-white py-8">
+          <div className="container mx-auto px-6 text-center">
+            <h3 className="text-2xl font-bold mb-4">Estância Turística</h3>
+            <p className="text-orange-100">
+              Descubra os melhores estabelecimentos e serviços da nossa região.
+            </p>
+          </div>
+        </footer>
+      </div>
+
+      {/* Espaçamento para compensar a barra fixa */}
+      <div className="h-32"></div>
     </div>
   );
 };

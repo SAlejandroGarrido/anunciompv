@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Upload, MapPin, Phone, MessageCircle, Instagram } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -27,15 +27,42 @@ const AdvertisementForm = ({
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<AdvertisementFormData>({
-    name: advertisement?.name || '',
-    description: advertisement?.description || '',
+    name: '',
+    description: '',
     photos: [],
-    phone: advertisement?.phone || '',
-    whatsapp: advertisement?.whatsapp || '',
-    instagram: advertisement?.instagram || '',
-    address: advertisement?.location.address || '',
-    category: advertisement?.category || '',
+    phone: '',
+    whatsapp: '',
+    instagram: '',
+    address: '',
+    category: '',
   });
+
+  // Atualiza os dados do formulário quando o advertisement muda
+  useEffect(() => {
+    if (advertisement) {
+      setFormData({
+        name: advertisement.name || '',
+        description: advertisement.description || '',
+        photos: [],
+        phone: advertisement.phone || '',
+        whatsapp: advertisement.whatsapp || '',
+        instagram: advertisement.instagram || '',
+        address: advertisement.location.address || '',
+        category: advertisement.category || '',
+      });
+    } else {
+      setFormData({
+        name: '',
+        description: '',
+        photos: [],
+        phone: '',
+        whatsapp: '',
+        instagram: '',
+        address: '',
+        category: '',
+      });
+    }
+  }, [advertisement]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

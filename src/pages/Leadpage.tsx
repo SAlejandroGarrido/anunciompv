@@ -1,0 +1,391 @@
+import { useState } from 'react';
+import { useAdvertisements } from '@/hooks/useAdvertisements';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { MapPin, Phone, MessageCircle, Instagram } from 'lucide-react';
+
+const Leadpage = () => {
+  const {
+    advertisements,
+    loading,
+    filters,
+    setFilters,
+    categories,
+    currentPage,
+    totalPages,
+    totalCount,
+    handlePageChange
+  } = useAdvertisements();
+
+  const [searchValue, setSearchValue] = useState('');
+
+  const handleSearch = (value: string) => {
+    setSearchValue(value);
+    setFilters({ ...filters, search: value || undefined });
+  };
+
+  const handleCategoryFilter = (category: string) => {
+    if (category === 'all') {
+      setFilters({ ...filters, category: undefined });
+    } else {
+      setFilters({ ...filters, category });
+    }
+  };
+
+  const handleLocationFilter = (location: string) => {
+    if (location === 'all') {
+      setFilters({ ...filters, location: undefined });
+    } else {
+      setFilters({ ...filters, location });
+    }
+  };
+
+  const clearFilters = () => {
+    setSearchValue('');
+    setFilters({});
+  };
+
+  const handleWhatsApp = (phone: string, name: string) => {
+    const message = encodeURIComponent(`Olá! Vi seu anúncio "${name}" e gostaria de mais informações.`);
+    const whatsappUrl = `https://wa.me/55${phone.replace(/\D/g, '')}?text=${message}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600">
+      {/* Header */}
+      <header className="bg-orange-500 text-white py-4 shadow-lg">
+        <div className="container mx-auto px-6">
+          <nav className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold">Estância Turística</h1>
+            <div className="flex space-x-6">
+              <a href="#destaques" className="hover:text-orange-200 transition-colors">Destaques</a>
+              <a href="#buscar" className="hover:text-orange-200 transition-colors">Pesquisar</a>
+              <a href="#comercios" className="hover:text-orange-200 transition-colors">Comércios e Serviços</a>
+              <a href="#pontos" className="hover:text-orange-200 transition-colors">Pontos Turísticos</a>
+            </div>
+          </nav>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section id="destaques" className="bg-orange-500 text-white py-12">
+        <div className="container mx-auto px-6 text-center">
+          <h2 className="text-4xl font-bold mb-8">Destaques da Região</h2>
+        </div>
+      </section>
+
+      {/* Principais Anúncios */}
+      <section className="py-12">
+        <div className="container mx-auto px-6">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center text-white">
+                <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p>Carregando destaques...</p>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {advertisements.slice(0, 4).map((ad) => (
+                <Card key={ad.id} className="overflow-hidden hover:shadow-xl transition-shadow duration-300 bg-white/95 backdrop-blur-sm">
+                  <div className="aspect-video bg-gray-200 overflow-hidden">
+                    {ad.photos && ad.photos.length > 0 ? (
+                      <img 
+                        src={ad.photos[0]} 
+                        alt={ad.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                        <span className="text-gray-400 text-sm">Sem imagem</span>
+                      </div>
+                    )}
+                  </div>
+                  <CardContent className="p-4">
+                    <h3 className="font-bold text-lg mb-2 text-blue-700">{ad.name}</h3>
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{ad.description}</p>
+                    <Button 
+                      onClick={() => handleWhatsApp(ad.whatsapp || ad.phone, ad.name)}
+                      className="w-full bg-green-500 hover:bg-green-600 text-white"
+                    >
+                      Mais Informações
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Seção de Busca */}
+      <section id="buscar" className="bg-orange-500 text-white py-12">
+        <div className="container mx-auto px-6 text-center">
+          <h2 className="text-4xl font-bold mb-8">Encontre o que procura!</h2>
+          
+          <div className="max-w-4xl mx-auto">
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+              <div className="flex-1">
+                <Input
+                  placeholder="Buscar por nome ou descrição..."
+                  value={searchValue}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="bg-white text-gray-900"
+                />
+              </div>
+              
+              <Select onValueChange={handleCategoryFilter}>
+                <SelectTrigger className="bg-white text-gray-900 md:w-48">
+                  <SelectValue placeholder="Filtrar por Categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as Categorias</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select onValueChange={handleLocationFilter}>
+                <SelectTrigger className="bg-white text-gray-900 md:w-48">
+                  <SelectValue placeholder="Filtrar por Localização" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as Localizações</SelectItem>
+                  {/* Aqui você pode adicionar localizações específicas baseadas nos dados */}
+                </SelectContent>
+              </Select>
+
+              <Button 
+                onClick={clearFilters}
+                variant="outline" 
+                className="bg-white text-orange-500 border-white hover:bg-orange-50"
+              >
+                Limpar Filtros
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Comércios e Serviços */}
+      <section id="comercios" className="py-12">
+        <div className="container mx-auto px-6">
+          <div className="bg-orange-500 text-white py-8 mb-8 rounded-lg">
+            <h2 className="text-4xl font-bold text-center">Comércios e Serviços</h2>
+          </div>
+
+          {/* Paginação superior compacta */}
+          {!loading && advertisements.length > 0 && totalPages > 1 && (
+            <div className="flex items-center justify-between mb-6 text-sm text-white">
+              <div>
+                Página {currentPage} de {totalPages} • {totalCount} anúncios
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage <= 1}
+                  className="px-3 py-1 text-xs bg-white/20 rounded hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed text-white"
+                >
+                  Anterior
+                </button>
+                <span className="text-xs px-2">
+                  {currentPage}/{totalPages}
+                </span>
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage >= totalPages}
+                  className="px-3 py-1 text-xs bg-white/20 rounded hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed text-white"
+                >
+                  Próxima
+                </button>
+              </div>
+            </div>
+          )}
+
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center text-white">
+                <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p>Carregando anúncios...</p>
+              </div>
+            </div>
+          ) : advertisements.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="max-w-md mx-auto bg-white/10 backdrop-blur-sm rounded-lg p-8">
+                <h3 className="text-lg font-semibold mb-2 text-white">Nenhum anúncio encontrado</h3>
+                <p className="text-white/80 mb-6">
+                  Tente ajustar os filtros de busca.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {advertisements.map((ad) => (
+                <Card key={ad.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 bg-white/95 backdrop-blur-sm transform hover:scale-105">
+                  <div className="aspect-video bg-gray-200 overflow-hidden">
+                    {ad.photos && ad.photos.length > 0 ? (
+                      <img 
+                        src={ad.photos[0]} 
+                        alt={ad.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                        <span className="text-gray-400 text-sm">Sem imagem</span>
+                      </div>
+                    )}
+                  </div>
+                  <CardContent className="p-4">
+                    <h3 className="font-bold text-lg mb-2 text-blue-700">{ad.name}</h3>
+                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">{ad.description}</p>
+                    
+                    <div className="space-y-2 mb-4">
+                      {ad.location?.address && (
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <MapPin className="w-3 h-3" />
+                          <span className="truncate">{ad.location.address}</span>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
+                          {ad.category}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={() => handleWhatsApp(ad.whatsapp || ad.phone, ad.name)}
+                        className="flex-1 bg-green-500 hover:bg-green-600 text-white text-sm"
+                        size="sm"
+                      >
+                        <MessageCircle className="w-4 h-4 mr-1" />
+                        WhatsApp
+                      </Button>
+                      
+                      {ad.phone && (
+                        <Button 
+                          onClick={() => window.open(`tel:${ad.phone}`, '_self')}
+                          variant="outline"
+                          size="sm"
+                          className="border-blue-500 text-blue-500 hover:bg-blue-50"
+                        >
+                          <Phone className="w-4 h-4" />
+                        </Button>
+                      )}
+                      
+                      {ad.instagram && (
+                        <Button 
+                          onClick={() => window.open(`https://instagram.com/${ad.instagram.replace('@', '')}`, '_blank')}
+                          variant="outline"
+                          size="sm"
+                          className="border-pink-500 text-pink-500 hover:bg-pink-50"
+                        >
+                          <Instagram className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {/* Paginação inferior */}
+          {!loading && advertisements.length > 0 && totalPages > 1 && (
+            <div className="mt-8 flex justify-center">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (currentPage > 1) {
+                          handlePageChange(currentPage - 1);
+                        }
+                      }}
+                      className={`text-white border-white hover:bg-white/20 ${currentPage <= 1 ? "pointer-events-none opacity-50" : ""}`}
+                    />
+                  </PaginationItem>
+                  
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                    let page;
+                    if (totalPages <= 5) {
+                      page = i + 1;
+                    } else if (currentPage <= 3) {
+                      page = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      page = totalPages - 4 + i;
+                    } else {
+                      page = currentPage - 2 + i;
+                    }
+                    
+                    return (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handlePageChange(page);
+                          }}
+                          isActive={currentPage === page}
+                          className={currentPage === page 
+                            ? "bg-white text-blue-600" 
+                            : "text-white border-white hover:bg-white/20"
+                          }
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  })}
+                  
+                  <PaginationItem>
+                    <PaginationNext 
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (currentPage < totalPages) {
+                          handlePageChange(currentPage + 1);
+                        }
+                      }}
+                      className={`text-white border-white hover:bg-white/20 ${currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}`}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-orange-500 text-white py-8">
+        <div className="container mx-auto px-6 text-center">
+          <h3 className="text-2xl font-bold mb-4">Estância Turística</h3>
+          <p className="text-orange-100">
+            Descubra os melhores estabelecimentos e serviços da nossa região.
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default Leadpage;

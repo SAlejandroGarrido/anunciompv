@@ -59,13 +59,22 @@ const Header = ({ onNewAdvertisement, searchValue, onSearchChange, onFilterClick
     <header className="bg-gradient-card border-b border-border shadow-soft">
       <div className="container mx-auto px-6 py-6">
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              Gerenciamento de Anúncios
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Gerencie anúncios turísticos de Paraibuna e região
-            </p>
+          <div className="flex items-center gap-6">
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                Gerenciamento de Anúncios
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                Gerencie anúncios turísticos de Paraibuna e região
+              </p>
+            </div>
+            
+            <a 
+              href="/leadpage" 
+              className="text-primary hover:text-primary/80 font-medium underline underline-offset-4 transition-colors"
+            >
+              Ver Leadpage
+            </a>
           </div>
           
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">

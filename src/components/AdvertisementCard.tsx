@@ -133,26 +133,28 @@ const AdvertisementCard = ({ advertisement, onEdit, onDelete, onToggleStatus }: 
       </CardContent>
 
       <CardFooter className="pt-3 border-t border-border/50">
-        <div className="flex items-center justify-between w-full">
-          <div className="flex gap-2">
+        <div className="flex flex-col gap-3 w-full">
+          <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={() => window.open(`tel:${advertisement.phone}`, '_self')}
+              className="flex-1"
             >
-              <Phone className="h-3 w-3" />
+              <Phone className="h-3 w-3 mr-1" />
               {advertisement.phone}
             </Button>
           </div>
           
-          <div className="flex gap-1">
+          <div className="flex gap-2 flex-wrap">
             {advertisement.whatsapp && (
               <Button
                 variant="success"
                 size="sm"
                 onClick={handleWhatsApp}
+                className="flex-1 min-w-[100px]"
               >
-                <MessageCircle className="h-3 w-3" />
+                <MessageCircle className="h-3 w-3 mr-1" />
                 WhatsApp
               </Button>
             )}
@@ -162,8 +164,9 @@ const AdvertisementCard = ({ advertisement, onEdit, onDelete, onToggleStatus }: 
                 variant="outline"
                 size="sm"
                 onClick={handleInstagram}
+                className="flex-1 min-w-[100px]"
               >
-                <Instagram className="h-3 w-3" />
+                <Instagram className="h-3 w-3 mr-1" />
                 Instagram
               </Button>
             )}
@@ -172,8 +175,9 @@ const AdvertisementCard = ({ advertisement, onEdit, onDelete, onToggleStatus }: 
               variant="outline"
               size="sm"
               onClick={handleLocation}
+              className="flex-1 min-w-[100px]"
             >
-              <MapPin className="h-3 w-3" />
+              <MapPin className="h-3 w-3 mr-1" />
               Mapa
             </Button>
           </div>

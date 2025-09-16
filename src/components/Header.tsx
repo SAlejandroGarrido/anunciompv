@@ -1,15 +1,60 @@
-import { Plus, Search, Filter } from 'lucide-react';
+import { Plus, Search, Filter, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface HeaderProps {
   onNewAdvertisement: () => void;
   searchValue: string;
   onSearchChange: (value: string) => void;
   onFilterClick: () => void;
+  onAuthRequired: () => void;
 }
 
-const Header = ({ onNewAdvertisement, searchValue, onSearchChange, onFilterClick }: HeaderProps) => {
+const Header = ({ onNewAdvertisement, searchValue, onSearchChange, onFilterClick, onAuthRequired }: HeaderProps) => {
+  const [user, setUser] = useState<any>(null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    // Check current user
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user || null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleNewAdvertisement = () => {
+    if (!user) {
+      onAuthRequired();
+      return;
+    }
+    onNewAdvertisement();
+  };
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível fazer logout",
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Logout realizado",
+        description: "Você foi desconectado com sucesso"
+      });
+    }
+  };
+
   return (
     <header className="bg-gradient-card border-b border-border shadow-soft">
       <div className="container mx-auto px-6 py-6">
@@ -34,7 +79,7 @@ const Header = ({ onNewAdvertisement, searchValue, onSearchChange, onFilterClick
               />
             </div>
             
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
               <Button
                 variant="outline"
                 size="default"
@@ -48,12 +93,40 @@ const Header = ({ onNewAdvertisement, searchValue, onSearchChange, onFilterClick
               <Button
                 variant="gradient"
                 size="default"
-                onClick={onNewAdvertisement}
+                onClick={handleNewAdvertisement}
                 className="shrink-0"
               >
                 <Plus className="h-4 w-4" />
                 Novo Anúncio
               </Button>
+
+              {user && (
+                <div className="flex gap-2 items-center ml-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <User className="h-4 w-4" />
+                    <span className="hidden sm:inline">{user.email}</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+
+              {!user && (
+                <Button
+                  variant="outline"
+                  size="default"
+                  onClick={onAuthRequired}
+                  className="shrink-0"
+                >
+                  <User className="h-4 w-4" />
+                  Login
+                </Button>
+              )}
             </div>
           </div>
         </div>

@@ -6,6 +6,7 @@ import AdvertisementCard from '@/components/AdvertisementCard';
 import FilterDialog from '@/components/FilterDialog';
 import AdvertisementForm from '@/components/AdvertisementForm';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
+import AuthModal from '@/components/AuthModal';
 import { Advertisement, AdvertisementFormData } from '@/types/advertisement';
 
 const Index = () => {
@@ -26,6 +27,7 @@ const Index = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [editingAdvertisement, setEditingAdvertisement] = useState<Advertisement | null>(null);
   const [deletingAdvertisement, setDeletingAdvertisement] = useState<Advertisement | null>(null);
 
@@ -102,19 +104,7 @@ const Index = () => {
         category: data.category,
       });
     } else {
-      await createAdvertisement({
-        name: data.name,
-        description: data.description,
-        photos: [],
-        phone: data.phone,
-        whatsapp: data.whatsapp,
-        instagram: data.instagram,
-        location: {
-          address: data.address,
-        },
-        status: 'active',
-        category: data.category,
-      });
+      await createAdvertisement(data);
     }
   };
 
@@ -125,6 +115,7 @@ const Index = () => {
         searchValue={searchValue}
         onSearchChange={handleSearch}
         onFilterClick={() => setShowFilters(true)}
+        onAuthRequired={() => setShowAuthModal(true)}
       />
 
       <main className="container mx-auto px-6 py-8">
@@ -182,6 +173,15 @@ const Index = () => {
         onOpenChange={setShowDeleteConfirm}
         onConfirm={confirmDelete}
         advertisementName={deletingAdvertisement?.name || ''}
+      />
+
+      <AuthModal
+        open={showAuthModal}
+        onOpenChange={setShowAuthModal}
+        onAuthenticated={() => {
+          // Reload advertisements after authentication
+          window.location.reload();
+        }}
       />
     </div>
   );

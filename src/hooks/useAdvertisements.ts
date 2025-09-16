@@ -1,68 +1,59 @@
 import { useState, useEffect } from 'react';
-import { Advertisement, AdvertisementFilters } from '@/types/advertisement';
-
-// Mock data para demonstração - em produção será substituído por API/Supabase
-const mockAdvertisements: Advertisement[] = [
-  {
-    id: '1',
-    name: 'Pousada Serra Verde',
-    description: 'Uma pousada aconchegante no coração da serra, ideal para relaxar e contemplar a natureza. Oferecemos quartos confortáveis com vista para as montanhas.',
-    photos: ['/placeholder.svg'],
-    phone: '(12) 3456-7890',
-    whatsapp: '5512345678900',
-    instagram: '@pousadaserraverde',
-    location: {
-      address: 'Estrada da Serra, 123 - Paraibuna, SP',
-      latitude: -23.3847,
-      longitude: -45.6625,
-      googleMapsUrl: 'https://maps.google.com/?q=-23.3847,-45.6625'
-    },
-    status: 'active',
-    category: 'Hospedagem',
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-01-15')
-  },
-  {
-    id: '2',
-    name: 'Restaurante Sabor da Roça',
-    description: 'Culinária típica da região com ingredientes frescos e locais. Especialidade em comida caipira e pratos da fazenda.',
-    photos: ['/placeholder.svg'],
-    phone: '(12) 9876-5432',
-    whatsapp: '5512987654321',
-    instagram: '@sabordarca',
-    location: {
-      address: 'Rua Principal, 456 - Centro, Paraibuna, SP',
-      latitude: -23.3847,
-      longitude: -45.6625
-    },
-    status: 'active',
-    category: 'Gastronomia',
-    createdAt: new Date('2024-01-10'),
-    updatedAt: new Date('2024-01-20')
-  },
-  {
-    id: '3',
-    name: 'Cachoeira do Sol',
-    description: 'Uma das mais belas cachoeiras da região, ideal para banho e contemplação. Trilha de dificuldade moderada.',
-    photos: ['/placeholder.svg'],
-    phone: '(12) 1111-2222',
-    location: {
-      address: 'Trilha da Cachoeira, s/n - Zona Rural, Paraibuna, SP',
-      latitude: -23.3847,
-      longitude: -45.6625
-    },
-    status: 'paused',
-    category: 'Atração Natural',
-    createdAt: new Date('2024-01-05'),
-    updatedAt: new Date('2024-01-25')
-  }
-];
+import { Advertisement, AdvertisementFilters, AdvertisementFormData } from '@/types/advertisement';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export const useAdvertisements = () => {
-  const [advertisements, setAdvertisements] = useState<Advertisement[]>(mockAdvertisements);
-  const [loading, setLoading] = useState(false);
+  const [advertisements, setAdvertisements] = useState<Advertisement[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<AdvertisementFilters>({});
+  const { toast } = useToast();
 
+  // Load advertisements from Supabase
+  const loadAdvertisements = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('advertisements')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Transform database data to match our interface
+      const transformedData: Advertisement[] = data?.map(item => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        photos: item.photos || [],
+        phone: item.phone,
+        whatsapp: item.whatsapp,
+        instagram: item.instagram,
+        location: item.location || { address: '' },
+        status: item.status as 'active' | 'paused' | 'inactive',
+        category: item.category,
+        createdAt: new Date(item.created_at),
+        updatedAt: new Date(item.updated_at)
+      })) || [];
+
+      setAdvertisements(transformedData);
+    } catch (error) {
+      console.error('Error loading advertisements:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os anúncios",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadAdvertisements();
+  }, []);
+
+  // Filter advertisements
   const filteredAdvertisements = advertisements.filter(ad => {
     if (filters.search && !ad.name.toLowerCase().includes(filters.search.toLowerCase()) &&
         !ad.description.toLowerCase().includes(filters.search.toLowerCase())) {
@@ -80,25 +71,90 @@ export const useAdvertisements = () => {
     return true;
   });
 
-  const createAdvertisement = async (data: Omit<Advertisement, 'id' | 'createdAt' | 'updatedAt'>) => {
-    setLoading(true);
+  const createAdvertisement = async (formData: AdvertisementFormData) => {
     try {
-      const newAd: Advertisement = {
-        ...data,
-        id: Date.now().toString(),
-        createdAt: new Date(),
-        updatedAt: new Date()
+      setLoading(true);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      const insertData = {
+        user_id: user.id,
+        name: formData.name,
+        description: formData.description,
+        photos: [], // For now, photos will be handled later
+        phone: formData.phone,
+        whatsapp: formData.whatsapp || null,
+        instagram: formData.instagram || null,
+        location: { address: formData.address },
+        category: formData.category,
+        status: 'active'
       };
+
+      const { data, error } = await supabase
+        .from('advertisements')
+        .insert([insertData])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Transform response and add to local state
+      const newAd: Advertisement = {
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        photos: data.photos || [],
+        phone: data.phone,
+        whatsapp: data.whatsapp,
+        instagram: data.instagram,
+        location: data.location || { address: '' },
+        status: data.status as 'active' | 'paused' | 'inactive',
+        category: data.category,
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at)
+      };
+
       setAdvertisements(prev => [newAd, ...prev]);
       return newAd;
+    } catch (error) {
+      console.error('Error creating advertisement:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível criar o anúncio",
+        variant: "destructive"
+      });
+      throw error;
     } finally {
       setLoading(false);
     }
   };
 
   const updateAdvertisement = async (id: string, data: Partial<Advertisement>) => {
-    setLoading(true);
     try {
+      setLoading(true);
+      
+      const updateData: any = {};
+      if (data.name) updateData.name = data.name;
+      if (data.description) updateData.description = data.description;
+      if (data.phone) updateData.phone = data.phone;
+      if (data.whatsapp !== undefined) updateData.whatsapp = data.whatsapp || null;
+      if (data.instagram !== undefined) updateData.instagram = data.instagram || null;
+      if (data.location) updateData.location = data.location;
+      if (data.category) updateData.category = data.category;
+      if (data.status) updateData.status = data.status;
+      if (data.photos) updateData.photos = data.photos;
+
+      const { error } = await supabase
+        .from('advertisements')
+        .update(updateData)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Update local state
       setAdvertisements(prev => 
         prev.map(ad => 
           ad.id === id 
@@ -106,15 +162,39 @@ export const useAdvertisements = () => {
             : ad
         )
       );
+    } catch (error) {
+      console.error('Error updating advertisement:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o anúncio",
+        variant: "destructive"
+      });
+      throw error;
     } finally {
       setLoading(false);
     }
   };
 
   const deleteAdvertisement = async (id: string) => {
-    setLoading(true);
     try {
+      setLoading(true);
+      
+      const { error } = await supabase
+        .from('advertisements')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
       setAdvertisements(prev => prev.filter(ad => ad.id !== id));
+    } catch (error) {
+      console.error('Error deleting advertisement:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível deletar o anúncio",
+        variant: "destructive"
+      });
+      throw error;
     } finally {
       setLoading(false);
     }

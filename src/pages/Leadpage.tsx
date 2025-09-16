@@ -35,6 +35,20 @@ const Leadpage = () => {
   const [searchValue, setSearchValue] = useState('');
   const [currentFeaturedIndex, setCurrentFeaturedIndex] = useState(0);
 
+  // Load featured advertisements on component mount
+  useEffect(() => {
+    const loadFeatured = async () => {
+      try {
+        const featured = await loadFeaturedAdvertisements();
+        setFeaturedAds(featured);
+      } catch (error) {
+        console.error('Error loading featured ads:', error);
+      }
+    };
+    
+    loadFeatured();
+  }, []);
+
   const handleSearch = (value: string) => {
     setSearchValue(value);
     setFilters({ ...filters, search: value || undefined });

@@ -97,9 +97,15 @@ const Leadpage = () => {
             <div className="flex space-x-6">
               <a href="#destaques" className="hover:text-orange-200 transition-colors">Destaques</a>
               <a href="#buscar" className="hover:text-orange-200 transition-colors">Pesquisar</a>
-              {categoriesWithAds.length > 0 && (
-                <a href="#comercios" className="hover:text-orange-200 transition-colors">Comércios e Serviços</a>
-              )}
+              {categoriesWithAds.map((category) => (
+                <a 
+                  key={category}
+                  href={`#${category.toLowerCase().replace(/\s+/g, '-')}`} 
+                  className="hover:text-orange-200 transition-colors"
+                >
+                  {category}
+                </a>
+              ))}
             </div>
           </nav>
         </div>
@@ -228,13 +234,10 @@ const Leadpage = () => {
         </div>
       </section>
 
-      {/* Comércios e Serviços organizados por categoria - só mostra se houver anúncios */}
+      {/* Categorias organizadas - só mostra se houver anúncios */}
       {categoriesWithAds.length > 0 && (
-        <section id="comercios" className="py-12">
-        <div className="container mx-auto px-6">
-          <div className="bg-orange-500 text-white py-8 mb-8 rounded-lg">
-            <h2 className="text-4xl font-bold text-center">Comércios e Serviços</h2>
-          </div>
+        <section className="py-12">
+          <div className="container mx-auto px-6">
 
           {/* Paginação superior compacta */}
           {!loading && advertisements.length > 0 && totalPages > 1 && (
@@ -289,7 +292,7 @@ const Leadpage = () => {
                 if (categoryAds.length === 0) return null;
                 
                 return (
-                  <div key={category} className="space-y-6">
+                  <div key={category} className="space-y-6" id={category.toLowerCase().replace(/\s+/g, '-')}>
                     {/* Título da categoria */}
                     <div className="bg-gradient-to-r from-orange-400 to-orange-600 text-white py-4 px-6 rounded-lg shadow-lg">
                       <h3 className="text-2xl font-bold text-center">{category}</h3>

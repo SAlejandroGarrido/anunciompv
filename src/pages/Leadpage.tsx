@@ -12,6 +12,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { MapPin, Phone, MessageCircle, Instagram } from 'lucide-react';
 
 const Leadpage = () => {
@@ -99,13 +100,31 @@ const Leadpage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {advertisements.slice(0, 4).map((ad) => (
                 <Card key={ad.id} className="overflow-hidden hover:shadow-xl transition-shadow duration-300 bg-white/95 backdrop-blur-sm">
-                  <div className="aspect-video bg-gray-200 overflow-hidden">
+                  <div className="aspect-video bg-gray-200 overflow-hidden relative">
                     {ad.photos && ad.photos.length > 0 ? (
-                      <img 
-                        src={ad.photos[0]} 
-                        alt={ad.name}
-                        className="w-full h-full object-cover"
-                      />
+                      ad.photos.length > 1 ? (
+                        <Carousel className="w-full h-full">
+                          <CarouselContent>
+                            {ad.photos.map((photo, index) => (
+                              <CarouselItem key={index}>
+                                <img 
+                                  src={photo} 
+                                  alt={`${ad.name} - ${index + 1}`}
+                                  className="w-full h-full object-cover"
+                                />
+                              </CarouselItem>
+                            ))}
+                          </CarouselContent>
+                          <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 bg-white/80 hover:bg-white" />
+                          <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 bg-white/80 hover:bg-white" />
+                        </Carousel>
+                      ) : (
+                        <img 
+                          src={ad.photos[0]} 
+                          alt={ad.name}
+                          className="w-full h-full object-cover"
+                        />
+                      )
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
                         <span className="text-gray-400 text-sm">Sem imagem</span>
@@ -235,14 +254,32 @@ const Leadpage = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {advertisements.map((ad) => (
-                <Card key={ad.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 bg-white/95 backdrop-blur-sm transform hover:scale-105">
-                  <div className="aspect-video bg-gray-200 overflow-hidden">
+                <Card key={ad.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 bg-white/95 backdrop-blur-sm transform hover:scale-105 group">
+                  <div className="aspect-video bg-gray-200 overflow-hidden relative">
                     {ad.photos && ad.photos.length > 0 ? (
-                      <img 
-                        src={ad.photos[0]} 
-                        alt={ad.name}
-                        className="w-full h-full object-cover"
-                      />
+                      ad.photos.length > 1 ? (
+                        <Carousel className="w-full h-full">
+                          <CarouselContent>
+                            {ad.photos.map((photo, index) => (
+                              <CarouselItem key={index}>
+                                <img 
+                                  src={photo} 
+                                  alt={`${ad.name} - ${index + 1}`}
+                                  className="w-full h-full object-cover"
+                                />
+                              </CarouselItem>
+                            ))}
+                          </CarouselContent>
+                          <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 bg-white/80 hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 bg-white/80 hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </Carousel>
+                      ) : (
+                        <img 
+                          src={ad.photos[0]} 
+                          alt={ad.name}
+                          className="w-full h-full object-cover"
+                        />
+                      )
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
                         <span className="text-gray-400 text-sm">Sem imagem</span>

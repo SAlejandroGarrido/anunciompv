@@ -74,6 +74,8 @@ const AdvertisementForm = ({
   useEffect(() => {
     if (advertisement?.photos && advertisement.photos.length > 0) {
       setPreviewUrls(advertisement.photos);
+    } else if (!advertisement) {
+      setPreviewUrls([]);
     }
   }, [advertisement?.photos]);
 
@@ -211,11 +213,12 @@ const AdvertisementForm = ({
 
     if (validFiles.length === 0) return;
 
-    setSelectedFiles(validFiles);
+    // Adicionar novos arquivos aos existentes
+    setSelectedFiles(prev => [...prev, ...validFiles]);
 
-    // Criar URLs de preview
+    // Criar URLs de preview para os novos arquivos e adicionar aos existentes
     const newPreviewUrls = validFiles.map(file => URL.createObjectURL(file));
-    setPreviewUrls(newPreviewUrls);
+    setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -267,23 +270,37 @@ const AdvertisementForm = ({
 
     if (validFiles.length === 0) return;
 
-    setSelectedFiles(validFiles);
+    // Adicionar novos arquivos aos existentes
+    setSelectedFiles(prev => [...prev, ...validFiles]);
 
-    // Criar URLs de preview
+    // Criar URLs de preview para os novos arquivos e adicionar aos existentes
     const newPreviewUrls = validFiles.map(file => URL.createObjectURL(file));
-    setPreviewUrls(newPreviewUrls);
+    setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
   };
 
   const removePhoto = (index: number) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
-    setPreviewUrls(prev => {
-      const newUrls = prev.filter((_, i) => i !== index);
-      // Revogar URL se for um blob criado localmente
-      if (prev[index].startsWith('blob:')) {
-        URL.revokeObjectURL(prev[index]);
+    const existingPhotosCount = advertisement?.photos?.length || 0;
+    
+    if (index < existingPhotosCount) {
+      // Remover foto existente (do servidor)
+      setPreviewUrls(prev => prev.filter((_, i) => i !== index));
+      // Também precisamos atualizar a lista de fotos existentes
+      if (advertisement?.photos) {
+        advertisement.photos = advertisement.photos.filter((_, i) => i !== index);
       }
-      return newUrls;
-    });
+    } else {
+      // Remover arquivo novo (local)
+      const localIndex = index - existingPhotosCount;
+      setSelectedFiles(prev => prev.filter((_, i) => i !== localIndex));
+      setPreviewUrls(prev => {
+        const newUrls = prev.filter((_, i) => i !== index);
+        // Revogar URL se for um blob criado localmente
+        if (prev[index].startsWith('blob:')) {
+          URL.revokeObjectURL(prev[index]);
+        }
+        return newUrls;
+      });
+    }
   };
 
   return (

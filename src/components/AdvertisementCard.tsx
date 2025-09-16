@@ -38,24 +38,36 @@ const AdvertisementCard = ({ advertisement, onEdit, onDelete, onToggleStatus }: 
     }
   };
 
+  const sanitizePhone = (value: string) => value.replace(/\D/g, '');
+  const ensureHttps = (url: string) => (url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`);
+
   const handleWhatsApp = () => {
-    if (advertisement.whatsapp) {
-      window.open(`https://wa.me/${advertisement.whatsapp}`, '_blank');
-    }
+    const raw = advertisement.whatsapp || advertisement.phone;
+    if (!raw) return;
+    const number = sanitizePhone(raw);
+    if (number) window.open(`https://wa.me/${number}`, '_blank', 'noopener,noreferrer');
   };
 
   const handleInstagram = () => {
-    if (advertisement.instagram) {
-      const username = advertisement.instagram.replace('@', '');
-      window.open(`https://instagram.com/${username}`, '_blank');
+    const ig = advertisement.instagram?.trim();
+    if (!ig) return;
+    let url = ig;
+    if (!(ig.startsWith('http://') || ig.startsWith('https://'))) {
+      const username = ig.replace(/^@/, '').replace(/^instagram\.com\//i, '');
+      url = `https://instagram.com/${username}`;
     }
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   const handleLocation = () => {
-    if (advertisement.location.googleMapsUrl) {
-      window.open(advertisement.location.googleMapsUrl, '_blank');
-    } else if (advertisement.location.latitude && advertisement.location.longitude) {
-      window.open(`https://maps.google.com/?q=${advertisement.location.latitude},${advertisement.location.longitude}`, '_blank');
+    const { googleMapsUrl, latitude, longitude, address } = advertisement.location;
+    if (googleMapsUrl) {
+      window.open(ensureHttps(googleMapsUrl), '_blank', 'noopener,noreferrer');
+    } else if (latitude && longitude) {
+      window.open(`https://www.google.com/maps?q=${latitude},${longitude}`, '_blank', 'noopener,noreferrer');
+    } else if (address) {
+      const q = encodeURIComponent(address);
+      window.open(`https://www.google.com/maps/search/?api=1&query=${q}`, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -138,7 +150,7 @@ const AdvertisementCard = ({ advertisement, onEdit, onDelete, onToggleStatus }: 
             <Button
               variant="outline"
               size="sm"
-              onClick={() => window.open(`tel:${advertisement.phone}`, '_self')}
+              onClick={() => window.open(`tel:${sanitizePhone(advertisement.phone)}`, '_self')}
               className="flex-1"
             >
               <Phone className="h-3 w-3 mr-1" />

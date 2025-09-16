@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AdvertisementFilters } from '@/types/advertisement';
-
+import { Checkbox } from '@/components/ui/checkbox';
 interface FilterDialogProps {
   filters: AdvertisementFilters;
   onFiltersChange: (filters: AdvertisementFilters) => void;
@@ -26,7 +26,7 @@ const FilterDialog = ({ filters, onFiltersChange, categories, open, onOpenChange
     onFiltersChange({});
   };
 
-  const hasActiveFilters = filters.category || filters.status || filters.location;
+  const hasActiveFilters = filters.category || filters.status || filters.location || filters.featuredOnly;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -77,6 +77,17 @@ const FilterDialog = ({ filters, onFiltersChange, categories, open, onOpenChange
             </Select>
           </div>
 
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="featuredOnly"
+              checked={!!filters.featuredOnly}
+              onCheckedChange={(checked) =>
+                onFiltersChange({ ...filters, featuredOnly: !!checked })
+              }
+            />
+            <Label htmlFor="featuredOnly">Apenas destaques</Label>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="location">Localização</Label>
             <Input
@@ -86,7 +97,6 @@ const FilterDialog = ({ filters, onFiltersChange, categories, open, onOpenChange
               onChange={(e) => handleFilterChange('location', e.target.value)}
             />
           </div>
-
           <div className="flex gap-2 pt-4">
             <Button
               variant="outline"

@@ -114,6 +114,7 @@ const Index = () => {
           address: data.address,
         },
         category: data.category,
+        featured: data.featured,
         photos: data.photos as unknown as string[], // URLs das fotos (já processadas no form)
       });
     } else {

@@ -72,7 +72,7 @@ const AdvertisementCard = ({ advertisement, onEdit, onDelete, onToggleStatus }: 
   };
 
   return (
-    <Card className="group hover:shadow-medium transition-all duration-300 bg-gradient-card border-border/50">
+    <Card className={`group hover:shadow-medium transition-all duration-300 bg-gradient-card border-border/50 ${advertisement.featured ? 'ring-2 ring-accent/50 bg-accent/10' : ''}`}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">

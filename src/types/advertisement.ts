@@ -24,6 +24,7 @@ export interface AdvertisementFilters {
   category?: string;
   status?: 'active' | 'paused' | 'inactive';
   location?: string;
+  featuredOnly?: boolean;
 }
 
 export interface AdvertisementFormData {

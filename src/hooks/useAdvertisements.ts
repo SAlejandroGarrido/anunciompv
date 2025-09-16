@@ -123,6 +123,9 @@ export const useAdvertisements = () => {
     if (filters.location && !ad.location.address.toLowerCase().includes(filters.location.toLowerCase())) {
       return false;
     }
+    if (filters.featuredOnly && !ad.featured) {
+      return false;
+    }
     return true;
   });
   

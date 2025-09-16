@@ -7,16 +7,33 @@ export const useAdvertisements = () => {
   const [advertisements, setAdvertisements] = useState<Advertisement[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<AdvertisementFilters>({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const { toast } = useToast();
+  
+  const ITEMS_PER_PAGE = 6;
 
   // Load advertisements from Supabase
-  const loadAdvertisements = async () => {
+  const loadAdvertisements = async (page = 1) => {
     try {
       setLoading(true);
+      
+      // Get total count first
+      const { count } = await supabase
+        .from('advertisements')
+        .select('*', { count: 'exact', head: true });
+      
+      setTotalCount(count || 0);
+      
+      // Get paginated data
+      const from = (page - 1) * ITEMS_PER_PAGE;
+      const to = from + ITEMS_PER_PAGE - 1;
+      
       const { data, error } = await supabase
         .from('advertisements')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (error) throw error;
 
@@ -50,10 +67,14 @@ export const useAdvertisements = () => {
   };
 
   useEffect(() => {
-    loadAdvertisements();
-  }, []);
+    loadAdvertisements(currentPage);
+  }, [currentPage]);
+  
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
-  // Filter advertisements
+  // Filter advertisements (filtering happens in memory for simplicity)
   const filteredAdvertisements = advertisements.filter(ad => {
     if (filters.search && !ad.name.toLowerCase().includes(filters.search.toLowerCase()) &&
         !ad.description.toLowerCase().includes(filters.search.toLowerCase())) {
@@ -70,6 +91,13 @@ export const useAdvertisements = () => {
     }
     return true;
   });
+  
+  // Reset to first page when filters change
+  useEffect(() => {
+    if (currentPage > 1) {
+      setCurrentPage(1);
+    }
+  }, [filters]);
 
   const createAdvertisement = async (formData: AdvertisementFormData) => {
     try {
@@ -117,7 +145,9 @@ export const useAdvertisements = () => {
         updatedAt: new Date(data.updated_at)
       };
 
-      setAdvertisements(prev => [newAd, ...prev]);
+      // Reload advertisements to maintain pagination
+      await loadAdvertisements(1);
+      setCurrentPage(1);
       return newAd;
     } catch (error) {
       console.error('Error creating advertisement:', error);
@@ -186,7 +216,8 @@ export const useAdvertisements = () => {
 
       if (error) throw error;
 
-      setAdvertisements(prev => prev.filter(ad => ad.id !== id));
+      // Reload current page after deletion
+      await loadAdvertisements(currentPage);
     } catch (error) {
       console.error('Error deleting advertisement:', error);
       toast({
@@ -208,6 +239,8 @@ export const useAdvertisements = () => {
     }
   };
 
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+
   return {
     advertisements: filteredAdvertisements,
     loading,
@@ -217,6 +250,10 @@ export const useAdvertisements = () => {
     updateAdvertisement,
     deleteAdvertisement,
     toggleStatus,
-    categories: ['Hospedagem', 'Gastronomia', 'Atração Natural', 'Turismo Rural', 'Aventura', 'Cultura']
+    categories: ['Hospedagem', 'Gastronomia', 'Atração Natural', 'Turismo Rural', 'Aventura', 'Cultura'],
+    currentPage,
+    totalPages,
+    totalCount,
+    handlePageChange
   };
 };

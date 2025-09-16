@@ -8,6 +8,14 @@ import AdvertisementForm from '@/components/AdvertisementForm';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog';
 import AuthModal from '@/components/AuthModal';
 import { Advertisement, AdvertisementFormData } from '@/types/advertisement';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 const Index = () => {
   const { toast } = useToast();
@@ -20,7 +28,11 @@ const Index = () => {
     updateAdvertisement,
     deleteAdvertisement,
     toggleStatus,
-    categories
+    categories,
+    currentPage,
+    totalPages,
+    totalCount,
+    handlePageChange
   } = useAdvertisements();
 
   const [searchValue, setSearchValue] = useState('');
@@ -139,17 +151,68 @@ const Index = () => {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {advertisements.map((advertisement) => (
-              <AdvertisementCard
-                key={advertisement.id}
-                advertisement={advertisement}
-                onEdit={handleEditAdvertisement}
-                onDelete={() => handleDeleteAdvertisement(advertisement)}
-                onToggleStatus={handleToggleStatus}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {advertisements.map((advertisement) => (
+                <AdvertisementCard
+                  key={advertisement.id}
+                  advertisement={advertisement}
+                  onEdit={handleEditAdvertisement}
+                  onDelete={() => handleDeleteAdvertisement(advertisement)}
+                  onToggleStatus={handleToggleStatus}
+                />
+              ))}
+            </div>
+            
+            {totalPages > 1 && (
+              <div className="mt-8 flex justify-center">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (currentPage > 1) {
+                            handlePageChange(currentPage - 1);
+                          }
+                        }}
+                        className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handlePageChange(page);
+                          }}
+                          isActive={currentPage === page}
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (currentPage < totalPages) {
+                            handlePageChange(currentPage + 1);
+                          }
+                        }}
+                        className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
+          </>
         )}
       </main>
 

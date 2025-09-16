@@ -84,7 +84,7 @@ export const useAdvertisements = () => {
         user_id: user.id,
         name: formData.name,
         description: formData.description,
-        photos: [], // For now, photos will be handled later
+        photos: formData.photos || [],
         phone: formData.phone,
         whatsapp: formData.whatsapp || null,
         instagram: formData.instagram || null,

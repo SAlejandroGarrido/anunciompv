@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { Advertisement, AdvertisementFormData } from '@/types/advertisement';
 
 interface AdvertisementFormProps {
@@ -26,6 +27,9 @@ const AdvertisementForm = ({
 }: AdvertisementFormProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [uploadingPhotos, setUploadingPhotos] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [formData, setFormData] = useState<AdvertisementFormData>({
     name: '',
     description: '',
@@ -61,8 +65,56 @@ const AdvertisementForm = ({
         address: '',
         category: '',
       });
+      setSelectedFiles([]);
+      setPreviewUrls([]);
     }
   }, [advertisement]);
+
+  // Carregar URLs de preview das fotos existentes
+  useEffect(() => {
+    if (advertisement?.photos && advertisement.photos.length > 0) {
+      setPreviewUrls(advertisement.photos);
+    }
+  }, [advertisement?.photos]);
+
+  // Função para fazer upload das fotos
+  const uploadPhotos = async (): Promise<string[]> => {
+    if (selectedFiles.length === 0) return advertisement?.photos || [];
+
+    setUploadingPhotos(true);
+    const uploadedUrls: string[] = [];
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      for (const file of selectedFiles) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+
+        const { data, error } = await supabase.storage
+          .from('advertisements')
+          .upload(fileName, file);
+
+        if (error) throw error;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('advertisements')
+          .getPublicUrl(data.path);
+
+        uploadedUrls.push(publicUrl);
+      }
+
+      // Combinar fotos existentes com as novas (se estiver editando)
+      const existingPhotos = advertisement?.photos || [];
+      return [...existingPhotos, ...uploadedUrls];
+    } catch (error) {
+      console.error('Error uploading photos:', error);
+      throw error;
+    } finally {
+      setUploadingPhotos(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,8 +130,19 @@ const AdvertisementForm = ({
 
     setLoading(true);
     try {
-      await onSubmit(formData);
+      // Upload das fotos primeiro
+      const photoUrls = await uploadPhotos();
+      
+      // Criar dados do formulário com URLs das fotos
+      const formDataWithPhotos: AdvertisementFormData = {
+        ...formData,
+        photos: photoUrls as any // Temporário, já que AdvertisementFormData espera File[]
+      };
+
+      await onSubmit(formDataWithPhotos);
       onOpenChange(false);
+      
+      // Resetar formulário
       setFormData({
         name: '',
         description: '',
@@ -90,6 +153,9 @@ const AdvertisementForm = ({
         address: '',
         category: '',
       });
+      setSelectedFiles([]);
+      setPreviewUrls([]);
+      
       toast({
         title: advertisement ? "Anúncio atualizado" : "Anúncio criado",
         description: advertisement 
@@ -112,6 +178,56 @@ const AdvertisementForm = ({
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    // Validar tipos de arquivo
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const validFiles = files.filter(file => {
+      if (!validTypes.includes(file.type)) {
+        toast({
+          title: "Tipo de arquivo inválido",
+          description: `${file.name} não é um tipo de imagem válido.`,
+          variant: "destructive",
+        });
+        return false;
+      }
+      
+      // Validar tamanho (5MB máximo)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Arquivo muito grande",
+          description: `${file.name} excede o limite de 5MB.`,
+          variant: "destructive",
+        });
+        return false;
+      }
+      
+      return true;
+    });
+
+    if (validFiles.length === 0) return;
+
+    setSelectedFiles(validFiles);
+
+    // Criar URLs de preview
+    const newPreviewUrls = validFiles.map(file => URL.createObjectURL(file));
+    setPreviewUrls(newPreviewUrls);
+  };
+
+  const removePhoto = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    setPreviewUrls(prev => {
+      const newUrls = prev.filter((_, i) => i !== index);
+      // Revogar URL se for um blob criado localmente
+      if (prev[index].startsWith('blob:')) {
+        URL.revokeObjectURL(prev[index]);
+      }
+      return newUrls;
+    });
   };
 
   return (
@@ -171,15 +287,47 @@ const AdvertisementForm = ({
 
           <div className="space-y-2">
             <Label htmlFor="photos">Fotos</Label>
-            <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
-              <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-              <p className="text-muted-foreground">
-                Clique para adicionar fotos ou arraste aqui
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                PNG, JPG até 5MB cada
-              </p>
+            <div className="border-2 border-dashed border-border rounded-lg p-6">
+              <input
+                type="file"
+                id="photos"
+                multiple
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <label htmlFor="photos" className="cursor-pointer block text-center">
+                <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
+                <p className="text-muted-foreground">
+                  Clique para adicionar fotos ou arraste aqui
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  PNG, JPG até 5MB cada
+                </p>
+              </label>
             </div>
+            
+            {/* Preview das fotos */}
+            {previewUrls.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-4">
+                {previewUrls.map((url, index) => (
+                  <div key={index} className="relative">
+                    <img
+                      src={url}
+                      alt={`Preview ${index + 1}`}
+                      className="w-full h-24 object-cover rounded-lg"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removePhoto(index)}
+                      className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -247,7 +395,7 @@ const AdvertisementForm = ({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={loading}
+              disabled={loading || uploadingPhotos}
               className="flex-1"
             >
               <X className="h-4 w-4" />
@@ -256,10 +404,10 @@ const AdvertisementForm = ({
             <Button
               type="submit"
               variant="gradient"
-              disabled={loading}
+              disabled={loading || uploadingPhotos}
               className="flex-1"
             >
-              {loading ? 'Salvando...' : (advertisement ? 'Atualizar' : 'Criar Anúncio')}
+              {uploadingPhotos ? 'Enviando fotos...' : loading ? 'Salvando...' : (advertisement ? 'Atualizar' : 'Criar Anúncio')}
             </Button>
           </div>
         </form>

@@ -44,14 +44,14 @@ export const AutoCarousel = ({ images, alt, className, interval = 3000 }: AutoCa
       <img 
         src={images[currentIndex]} 
         alt={`${alt} - ${currentIndex + 1}`}
-        className="w-full h-full object-cover transition-opacity duration-500"
+        className="w-full h-full object-cover transition-all duration-700 ease-in-out"
       />
       <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
         {images.map((_, index) => (
           <button
             key={index}
-            className={`w-2 h-2 rounded-full transition-colors ${
-              index === currentIndex ? 'bg-white' : 'bg-white/50'
+            className={`w-2 h-2 rounded-full transition-all duration-300 ease-in-out ${
+              index === currentIndex ? 'bg-white scale-110' : 'bg-white/50 hover:bg-white/70'
             }`}
             onClick={() => setCurrentIndex(index)}
           />
@@ -99,8 +99,8 @@ export const ManualCarousel = ({ images, alt, className }: ManualCarouselProps) 
           </CarouselItem>
         ))}
       </CarouselContent>
-      <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 bg-white/80 hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity" />
-      <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 bg-white/80 hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity" />
+      <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 bg-white/80 hover:bg-white opacity-0 group-hover:opacity-100 transition-all duration-300 ease-in-out hover:scale-110" />
+      <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 bg-white/80 hover:bg-white opacity-0 group-hover:opacity-100 transition-all duration-300 ease-in-out hover:scale-110" />
     </Carousel>
   );
 };

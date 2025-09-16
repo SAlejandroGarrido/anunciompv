@@ -34,7 +34,7 @@ const Leadpage = () => {
 
   const [featuredAds, setFeaturedAds] = useState<Advertisement[]>([]);
   const [searchValue, setSearchValue] = useState('');
-  const [currentFeaturedIndex, setCurrentFeaturedIndex] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   // Load featured advertisements on component mount
   useEffect(() => {
@@ -54,6 +54,19 @@ const Leadpage = () => {
   const categoriesWithAds = categories.filter(category => 
     advertisements.some(ad => ad.category === category)
   );
+
+  // Handle category selection from menu
+  const handleCategoryClick = (category: string) => {
+    setSelectedCategory(category);
+    setFilters({ category });
+  };
+
+  // Back to main view
+  const handleBackToMain = () => {
+    setSelectedCategory(null);
+    setFilters({});
+    setSearchValue('');
+  };
 
   const handleSearch = (value: string) => {
     setSearchValue(value);
@@ -88,351 +101,566 @@ const Leadpage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 pt-32">{/* pt-32 para compensar header e busca fixos */}
-      {/* Header Fixo */}
-      <header className="bg-orange-500 text-white py-4 shadow-lg fixed top-0 left-0 right-0 z-50">
+    <div className={`min-h-screen bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 ${selectedCategory ? 'pt-32' : ''}`}>
+      {/* Header - só fica fixo quando categoria selecionada */}
+      <header className={`bg-orange-500 text-white py-4 shadow-lg ${selectedCategory ? 'fixed top-0 left-0 right-0 z-50' : ''}`}>
         <div className="container mx-auto px-6">
           <nav className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">Estância Turística</h1>
+            <div className="flex items-center">
+              <h1 className="text-2xl font-bold">Estância Turística</h1>
+              {selectedCategory && (
+                <button 
+                  onClick={handleBackToMain}
+                  className="ml-4 text-orange-200 hover:text-white transition-colors"
+                >
+                  ← Voltar
+                </button>
+              )}
+            </div>
             
             {/* Menu principal com apenas categorias */}
             <div className="flex space-x-6">
-              <a href="#buscar" className="hover:text-orange-200 transition-colors">Pesquisar</a>
+              {!selectedCategory && <a href="#buscar" className="hover:text-orange-200 transition-colors">Pesquisar</a>}
               {categoriesWithAds.map((category) => (
-                <a 
+                <button 
                   key={category}
-                  href={`#${category.toLowerCase().replace(/\s+/g, '-')}`} 
-                  className="hover:text-orange-200 transition-colors"
+                  onClick={() => handleCategoryClick(category)}
+                  className={`hover:text-orange-200 transition-colors ${
+                    selectedCategory === category ? 'text-orange-200 font-semibold' : ''
+                  }`}
                 >
                   {category}
-                </a>
+                </button>
               ))}
             </div>
           </nav>
         </div>
       </header>
 
-      {/* Seção de Busca Fixa */}
-      <section id="buscar" className="bg-white py-4 shadow-md fixed top-16 left-0 right-0 z-40">
-        <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
-                <Input
-                  placeholder="Buscar por nome ou descrição..."
-                  value={searchValue}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="bg-gray-50 border-gray-300 text-gray-900 focus:border-orange-500 focus:ring-orange-500"
-                />
-              </div>
-              
-              <Select onValueChange={handleCategoryFilter}>
-                <SelectTrigger className="bg-gray-50 border-gray-300 text-gray-900 md:w-48 focus:border-orange-500">
-                  <SelectValue placeholder="Filtrar por Categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as Categorias</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+      {/* Seção de Busca Fixa - só aparece quando categoria selecionada */}
+      {selectedCategory && (
+        <section className="bg-white py-4 shadow-md fixed top-16 left-0 right-0 z-40">
+          <div className="container mx-auto px-6">
+            <div className="max-w-4xl mx-auto">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  <Input
+                    placeholder="Buscar por nome ou descrição..."
+                    value={searchValue}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    className="bg-gray-50 border-gray-300 text-gray-900 focus:border-orange-500 focus:ring-orange-500"
+                  />
+                </div>
+                
+                <Select onValueChange={handleLocationFilter}>
+                  <SelectTrigger className="bg-gray-50 border-gray-300 text-gray-900 md:w-48 focus:border-orange-500">
+                    <SelectValue placeholder="Filtrar por Localização" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as Localizações</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              <Select onValueChange={handleLocationFilter}>
-                <SelectTrigger className="bg-gray-50 border-gray-300 text-gray-900 md:w-48 focus:border-orange-500">
-                  <SelectValue placeholder="Filtrar por Localização" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as Localizações</SelectItem>
-                  {/* Aqui você pode adicionar localizações específicas baseadas nos dados */}
-                </SelectContent>
-              </Select>
-
-              <Button 
-                onClick={clearFilters}
-                variant="outline" 
-                className="bg-orange-500 text-white border-orange-500 hover:bg-orange-600 hover:border-orange-600"
-              >
-                Limpar Filtros
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Seção de Destaques - Separada e mais proeminente */}
-      <section className="bg-gradient-to-r from-orange-400 to-orange-600 text-white py-16">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-5xl font-bold mb-4">🌟 Destaques da Região</h2>
-            <p className="text-xl text-orange-100">Descubra os melhores estabelecimentos e atrações</p>
-          </div>
-
-          {/* Carrossel de Destaques */}
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-center text-white">
-                <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p>Carregando destaques...</p>
+                <Button 
+                  onClick={clearFilters}
+                  variant="outline" 
+                  className="bg-orange-500 text-white border-orange-500 hover:bg-orange-600 hover:border-orange-600"
+                >
+                  Limpar Filtros
+                </Button>
               </div>
             </div>
-          ) : featuredAds.length > 0 ? (
-            <div className="relative">
-              <Carousel 
-                className="w-full"
-                opts={{
-                  align: "start",
-                  loop: true,
-                  skipSnaps: false,
-                  dragFree: false,
-                }}
-                plugins={[
-                  Autoplay({
-                    delay: 3000,
-                    stopOnInteraction: true,
-                  }),
-                ]}
-              >
-                <CarouselContent>
-                  {featuredAds.map((ad, index) => (
-                    <CarouselItem key={ad.id} className="md:basis-1/2 lg:basis-1/4">
-                      <Card className="overflow-hidden hover:shadow-xl transition-shadow duration-300 bg-white/95 backdrop-blur-sm">
-                        <div className="aspect-video bg-gray-200 overflow-hidden">
-                          <AutoCarousel 
-                            images={ad.photos || []}
-                            alt={ad.name}
-                            className="transition-transform group-hover:scale-105"
-                          />
-                        </div>
-                        <CardContent className="p-4">
-                          <h3 className="font-bold text-lg mb-2 text-blue-700">{ad.name}</h3>
-                          <p className="text-gray-600 text-sm mb-4 line-clamp-2">{ad.description}</p>
-                          <Button 
-                            onClick={() => handleWhatsApp(ad.whatsapp || ad.phone, ad.name)}
-                            className="w-full bg-green-500 hover:bg-green-600 text-white"
-                          >
-                            Mais Informações
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2" />
-                <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2" />
-              </Carousel>
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-white/80">Nenhum anúncio em destaque no momento.</p>
-            </div>
-          )}
-        </div>
-      </section>
+          </div>
+        </section>
+      )}
 
-
-      {/* Categorias organizadas - só mostra se houver anúncios */}
-      {categoriesWithAds.length > 0 && (
+      {/* Mostrar apenas categoria selecionada ou conteúdo completo */}
+      {selectedCategory ? (
+        /* Visualização de categoria específica - centralizada */
         <section className="py-12">
           <div className="container mx-auto px-6">
-
-          {/* Paginação superior compacta */}
-          {!loading && advertisements.length > 0 && totalPages > 1 && (
-            <div className="flex items-center justify-between mb-6 text-sm text-white">
-              <div>
-                Página {currentPage} de {totalPages} • {totalCount} anúncios
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage <= 1}
-                  className="px-3 py-1 text-xs bg-white/20 rounded hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed text-white"
-                >
-                  Anterior
-                </button>
-                <span className="text-xs px-2">
-                  {currentPage}/{totalPages}
-                </span>
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage >= totalPages}
-                  className="px-3 py-1 text-xs bg-white/20 rounded hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed text-white"
-                >
-                  Próxima
-                </button>
-              </div>
-            </div>
-          )}
-
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-center text-white">
-                <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p>Carregando anúncios...</p>
-              </div>
-            </div>
-          ) : advertisements.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="max-w-md mx-auto bg-white/10 backdrop-blur-sm rounded-lg p-8">
-                <h3 className="text-lg font-semibold mb-2 text-white">Nenhum anúncio encontrado</h3>
-                <p className="text-white/80 mb-6">
-                  Tente ajustar os filtros de busca.
+            <div className="max-w-6xl mx-auto">
+              {/* Título da categoria centralizado */}
+              <div className="bg-gradient-to-r from-orange-400 to-orange-600 text-white py-8 px-6 rounded-lg shadow-lg mb-8 text-center">
+                <h2 className="text-4xl font-bold">{selectedCategory}</h2>
+                <p className="text-orange-100 text-lg mt-2">
+                  {advertisements.filter(ad => ad.category === selectedCategory).length} anúncios encontrados
                 </p>
               </div>
-            </div>
-          ) : (
-            <div className="space-y-12">
-              {/* Agrupar anúncios por categoria */}
-              {categoriesWithAds.map((category) => {
-                const categoryAds = advertisements.filter(ad => ad.category === category);
-                
-                if (categoryAds.length === 0) return null;
-                
-                return (
-                  <div key={category} className="space-y-6" id={category.toLowerCase().replace(/\s+/g, '-')}>
-                    {/* Título da categoria */}
-                    <div className="bg-gradient-to-r from-orange-400 to-orange-600 text-white py-4 px-6 rounded-lg shadow-lg">
-                      <h3 className="text-2xl font-bold text-center">{category}</h3>
-                      <p className="text-center text-orange-100 text-sm mt-1">
-                        {categoryAds.length} {categoryAds.length === 1 ? 'anúncio' : 'anúncios'}
-                      </p>
-                    </div>
 
-                    {/* Grid de anúncios da categoria */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {categoryAds.map((ad) => (
-                        <Card key={ad.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 bg-white/95 backdrop-blur-sm transform hover:scale-105 group">
-                          <div className="aspect-video bg-gray-200 overflow-hidden relative">
-                            <AutoCarousel 
-                              images={ad.photos || []}
-                              alt={ad.name}
-                            />
-                          </div>
-                          <CardContent className="p-4">
-                            <h4 className="font-bold text-lg mb-2 text-blue-700">{ad.name}</h4>
-                            <p className="text-gray-600 text-sm mb-3 line-clamp-2">{ad.description}</p>
-                            
-                            <div className="space-y-2 mb-4">
-                              {ad.location?.address && (
-                                <div className="flex items-center gap-2 text-xs text-gray-500">
-                                  <MapPin className="w-3 h-3" />
-                                  <span className="truncate">{ad.location.address}</span>
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="flex gap-2">
-                              <Button 
-                                onClick={() => handleWhatsApp(ad.whatsapp || ad.phone, ad.name)}
-                                className="flex-1 bg-green-500 hover:bg-green-600 text-white text-sm"
-                                size="sm"
-                              >
-                                <MessageCircle className="w-4 h-4 mr-1" />
-                                WhatsApp
-                              </Button>
-                              
-                              {ad.phone && (
-                                <Button 
-                                  onClick={() => window.open(`tel:${ad.phone}`, '_self')}
-                                  variant="outline"
-                                  size="sm"
-                                  className="border-blue-500 text-blue-500 hover:bg-blue-50"
-                                >
-                                  <Phone className="w-4 h-4" />
-                                </Button>
-                              )}
-                              
-                              {ad.instagram && (
-                                <Button 
-                                  onClick={() => window.open(`https://instagram.com/${ad.instagram.replace('@', '')}`, '_blank')}
-                                  variant="outline"
-                                  size="sm"
-                                  className="border-pink-500 text-pink-500 hover:bg-pink-50"
-                                >
-                                  <Instagram className="w-4 h-4" />
-                                </Button>
-                              )}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
+              {/* Grid de anúncios da categoria */}
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-center text-white">
+                    <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p>Carregando anúncios...</p>
                   </div>
-                );
-              })}
-            </div>
-          )}
+                </div>
+              ) : advertisements.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="max-w-md mx-auto bg-white/10 backdrop-blur-sm rounded-lg p-8">
+                    <h3 className="text-lg font-semibold mb-2 text-white">Nenhum anúncio encontrado</h3>
+                    <p className="text-white/80 mb-6">
+                      Tente ajustar os filtros de busca.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {advertisements.map((ad) => (
+                    <Card key={ad.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 bg-white/95 backdrop-blur-sm transform hover:scale-105 group">
+                      <div className="aspect-video bg-gray-200 overflow-hidden relative">
+                        <AutoCarousel 
+                          images={ad.photos || []}
+                          alt={ad.name}
+                        />
+                      </div>
+                      <CardContent className="p-4">
+                        <h4 className="font-bold text-lg mb-2 text-blue-700">{ad.name}</h4>
+                        <p className="text-gray-600 text-sm mb-3 line-clamp-2">{ad.description}</p>
+                        
+                        <div className="space-y-2 mb-4">
+                          {ad.location?.address && (
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              <MapPin className="w-3 h-3" />
+                              <span className="truncate">{ad.location.address}</span>
+                            </div>
+                          )}
+                        </div>
 
-          {/* Paginação inferior */}
-          {!loading && advertisements.length > 0 && totalPages > 1 && (
-            <div className="mt-8 flex justify-center">
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious 
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (currentPage > 1) {
-                          handlePageChange(currentPage - 1);
-                        }
-                      }}
-                      className={`text-white border-white hover:bg-white/20 ${currentPage <= 1 ? "pointer-events-none opacity-50" : ""}`}
-                    />
-                  </PaginationItem>
-                  
-                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                    let page;
-                    if (totalPages <= 5) {
-                      page = i + 1;
-                    } else if (currentPage <= 3) {
-                      page = i + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      page = totalPages - 4 + i;
-                    } else {
-                      page = currentPage - 2 + i;
-                    }
-                    
-                    return (
-                      <PaginationItem key={page}>
-                        <PaginationLink
+                        <div className="flex gap-2">
+                          <Button 
+                            onClick={() => handleWhatsApp(ad.whatsapp || ad.phone, ad.name)}
+                            className="flex-1 bg-green-500 hover:bg-green-600 text-white text-sm"
+                            size="sm"
+                          >
+                            <MessageCircle className="w-4 h-4 mr-1" />
+                            WhatsApp
+                          </Button>
+                          
+                          {ad.phone && (
+                            <Button 
+                              onClick={() => window.open(`tel:${ad.phone}`, '_self')}
+                              variant="outline"
+                              size="sm"
+                              className="border-blue-500 text-blue-500 hover:bg-blue-50"
+                            >
+                              <Phone className="w-4 h-4" />
+                            </Button>
+                          )}
+                          
+                          {ad.instagram && (
+                            <Button 
+                              onClick={() => window.open(`https://instagram.com/${ad.instagram.replace('@', '')}`, '_blank')}
+                              variant="outline"
+                              size="sm"
+                              className="border-pink-500 text-pink-500 hover:bg-pink-50"
+                            >
+                              <Instagram className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
+              {/* Paginação */}
+              {!loading && advertisements.length > 0 && totalPages > 1 && (
+                <div className="mt-8 flex justify-center">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
                           href="#"
                           onClick={(e) => {
                             e.preventDefault();
-                            handlePageChange(page);
+                            if (currentPage > 1) {
+                              handlePageChange(currentPage - 1);
+                            }
                           }}
-                          isActive={currentPage === page}
-                          className={currentPage === page 
-                            ? "bg-white text-blue-600" 
-                            : "text-white border-white hover:bg-white/20"
-                          }
-                        >
-                          {page}
-                        </PaginationLink>
+                          className={`text-white border-white hover:bg-white/20 ${currentPage <= 1 ? "pointer-events-none opacity-50" : ""}`}
+                        />
                       </PaginationItem>
-                    );
-                  })}
-                  
-                  <PaginationItem>
-                    <PaginationNext 
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (currentPage < totalPages) {
-                          handlePageChange(currentPage + 1);
+                      
+                      {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                        let page;
+                        if (totalPages <= 5) {
+                          page = i + 1;
+                        } else if (currentPage <= 3) {
+                          page = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          page = totalPages - 4 + i;
+                        } else {
+                          page = currentPage - 2 + i;
                         }
-                      }}
-                      className={`text-white border-white hover:bg-white/20 ${currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}`}
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
+                        
+                        return (
+                          <PaginationItem key={page}>
+                            <PaginationLink
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handlePageChange(page);
+                              }}
+                              isActive={currentPage === page}
+                              className={currentPage === page 
+                                ? "bg-white text-blue-600" 
+                                : "text-white border-white hover:bg-white/20"
+                              }
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+                      
+                      <PaginationItem>
+                        <PaginationNext 
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (currentPage < totalPages) {
+                              handlePageChange(currentPage + 1);
+                            }
+                          }}
+                          className={`text-white border-white hover:bg-white/20 ${currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}`}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </div>
         </section>
+      ) : (
+        /* Visualização completa da página */
+        <>
+          {/* Seção de Destaques - Separada e mais proeminente */}
+          <section className="bg-gradient-to-r from-orange-400 to-orange-600 text-white py-16">
+            <div className="container mx-auto px-6">
+              <div className="text-center mb-12">
+                <h2 className="text-5xl font-bold mb-4">🌟 Destaques da Região</h2>
+                <p className="text-xl text-orange-100">Descubra os melhores estabelecimentos e atrações</p>
+              </div>
+
+              {/* Carrossel de Destaques */}
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-center text-white">
+                    <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p>Carregando destaques...</p>
+                  </div>
+                </div>
+              ) : featuredAds.length > 0 ? (
+                <div className="relative">
+                  <Carousel 
+                    className="w-full"
+                    opts={{
+                      align: "start",
+                      loop: true,
+                      skipSnaps: false,
+                      dragFree: false,
+                    }}
+                    plugins={[
+                      Autoplay({
+                        delay: 3000,
+                        stopOnInteraction: true,
+                      }),
+                    ]}
+                  >
+                    <CarouselContent>
+                      {featuredAds.map((ad, index) => (
+                        <CarouselItem key={ad.id} className="md:basis-1/2 lg:basis-1/4">
+                          <Card className="overflow-hidden hover:shadow-xl transition-shadow duration-300 bg-white/95 backdrop-blur-sm">
+                            <div className="aspect-video bg-gray-200 overflow-hidden">
+                              <AutoCarousel 
+                                images={ad.photos || []}
+                                alt={ad.name}
+                                className="transition-transform group-hover:scale-105"
+                              />
+                            </div>
+                            <CardContent className="p-4">
+                              <h3 className="font-bold text-lg mb-2 text-blue-700">{ad.name}</h3>
+                              <p className="text-gray-600 text-sm mb-4 line-clamp-2">{ad.description}</p>
+                              <Button 
+                                onClick={() => handleWhatsApp(ad.whatsapp || ad.phone, ad.name)}
+                                className="w-full bg-green-500 hover:bg-green-600 text-white"
+                              >
+                                Mais Informações
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2" />
+                    <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2" />
+                  </Carousel>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-white/80">Nenhum anúncio em destaque no momento.</p>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Seção de Busca */}
+          <section id="buscar" className="bg-white py-16">
+            <div className="container mx-auto px-6 text-center">
+              <h2 className="text-4xl font-bold mb-4 text-gray-800">🔍 Encontre o que procura!</h2>
+              <p className="text-xl text-gray-600 mb-8">Use os filtros abaixo para encontrar exatamente o que você precisa</p>
+              
+              <div className="max-w-4xl mx-auto">
+                <div className="flex flex-col md:flex-row gap-4 mb-6">
+                  <div className="flex-1">
+                    <Input
+                      placeholder="Buscar por nome ou descrição..."
+                      value={searchValue}
+                      onChange={(e) => handleSearch(e.target.value)}
+                      className="bg-gray-50 border-gray-300 text-gray-900 focus:border-orange-500 focus:ring-orange-500"
+                    />
+                  </div>
+                  
+                  <Select onValueChange={handleCategoryFilter}>
+                    <SelectTrigger className="bg-gray-50 border-gray-300 text-gray-900 md:w-48 focus:border-orange-500">
+                      <SelectValue placeholder="Filtrar por Categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas as Categorias</SelectItem>
+                      {categories.map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select onValueChange={handleLocationFilter}>
+                    <SelectTrigger className="bg-gray-50 border-gray-300 text-gray-900 md:w-48 focus:border-orange-500">
+                      <SelectValue placeholder="Filtrar por Localização" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas as Localizações</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Button 
+                    onClick={clearFilters}
+                    variant="outline" 
+                    className="bg-orange-500 text-white border-orange-500 hover:bg-orange-600 hover:border-orange-600"
+                  >
+                    Limpar Filtros
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Categorias organizadas - só mostra se houver anúncios */}
+          {categoriesWithAds.length > 0 && (
+            <section className="py-12">
+              <div className="container mx-auto px-6">
+                {/* Paginação superior compacta */}
+                {!loading && advertisements.length > 0 && totalPages > 1 && (
+                  <div className="flex items-center justify-between mb-6 text-sm text-white">
+                    <div>
+                      Página {currentPage} de {totalPages} • {totalCount} anúncios
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage <= 1}
+                        className="px-3 py-1 text-xs bg-white/20 rounded hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed text-white"
+                      >
+                        Anterior
+                      </button>
+                      <span className="text-xs px-2">
+                        {currentPage}/{totalPages}
+                      </span>
+                      <button
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage >= totalPages}
+                        className="px-3 py-1 text-xs bg-white/20 rounded hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed text-white"
+                      >
+                        Próxima
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {loading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="text-center text-white">
+                      <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                      <p>Carregando anúncios...</p>
+                    </div>
+                  </div>
+                ) : advertisements.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="max-w-md mx-auto bg-white/10 backdrop-blur-sm rounded-lg p-8">
+                      <h3 className="text-lg font-semibold mb-2 text-white">Nenhum anúncio encontrado</h3>
+                      <p className="text-white/80 mb-6">
+                        Tente ajustar os filtros de busca.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-12">
+                    {/* Agrupar anúncios por categoria */}
+                    {categoriesWithAds.map((category) => {
+                      const categoryAds = advertisements.filter(ad => ad.category === category);
+                      
+                      if (categoryAds.length === 0) return null;
+                      
+                      return (
+                        <div key={category} className="space-y-6" id={category.toLowerCase().replace(/\s+/g, '-')}>
+                          {/* Título da categoria */}
+                          <div className="bg-gradient-to-r from-orange-400 to-orange-600 text-white py-4 px-6 rounded-lg shadow-lg">
+                            <h3 className="text-2xl font-bold text-center">{category}</h3>
+                            <p className="text-center text-orange-100 text-sm mt-1">
+                              {categoryAds.length} {categoryAds.length === 1 ? 'anúncio' : 'anúncios'}
+                            </p>
+                          </div>
+
+                          {/* Grid de anúncios da categoria */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {categoryAds.map((ad) => (
+                              <Card key={ad.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 bg-white/95 backdrop-blur-sm transform hover:scale-105 group">
+                                <div className="aspect-video bg-gray-200 overflow-hidden relative">
+                                  <AutoCarousel 
+                                    images={ad.photos || []}
+                                    alt={ad.name}
+                                  />
+                                </div>
+                                <CardContent className="p-4">
+                                  <h4 className="font-bold text-lg mb-2 text-blue-700">{ad.name}</h4>
+                                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">{ad.description}</p>
+                                  
+                                  <div className="space-y-2 mb-4">
+                                    {ad.location?.address && (
+                                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                                        <MapPin className="w-3 h-3" />
+                                        <span className="truncate">{ad.location.address}</span>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  <div className="flex gap-2">
+                                    <Button 
+                                      onClick={() => handleWhatsApp(ad.whatsapp || ad.phone, ad.name)}
+                                      className="flex-1 bg-green-500 hover:bg-green-600 text-white text-sm"
+                                      size="sm"
+                                    >
+                                      <MessageCircle className="w-4 h-4 mr-1" />
+                                      WhatsApp
+                                    </Button>
+                                    
+                                    {ad.phone && (
+                                      <Button 
+                                        onClick={() => window.open(`tel:${ad.phone}`, '_self')}
+                                        variant="outline"
+                                        size="sm"
+                                        className="border-blue-500 text-blue-500 hover:bg-blue-50"
+                                      >
+                                        <Phone className="w-4 h-4" />
+                                      </Button>
+                                    )}
+                                    
+                                    {ad.instagram && (
+                                      <Button 
+                                        onClick={() => window.open(`https://instagram.com/${ad.instagram.replace('@', '')}`, '_blank')}
+                                        variant="outline"
+                                        size="sm"
+                                        className="border-pink-500 text-pink-500 hover:bg-pink-50"
+                                      >
+                                        <Instagram className="w-4 h-4" />
+                                      </Button>
+                                    )}
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Paginação inferior */}
+                {!loading && advertisements.length > 0 && totalPages > 1 && (
+                  <div className="mt-8 flex justify-center">
+                    <Pagination>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious 
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (currentPage > 1) {
+                                handlePageChange(currentPage - 1);
+                              }
+                            }}
+                            className={`text-white border-white hover:bg-white/20 ${currentPage <= 1 ? "pointer-events-none opacity-50" : ""}`}
+                          />
+                        </PaginationItem>
+                        
+                        {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                          let page;
+                          if (totalPages <= 5) {
+                            page = i + 1;
+                          } else if (currentPage <= 3) {
+                            page = i + 1;
+                          } else if (currentPage >= totalPages - 2) {
+                            page = totalPages - 4 + i;
+                          } else {
+                            page = currentPage - 2 + i;
+                          }
+                          
+                          return (
+                            <PaginationItem key={page}>
+                              <PaginationLink
+                                href="#"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handlePageChange(page);
+                                }}
+                                isActive={currentPage === page}
+                                className={currentPage === page 
+                                  ? "bg-white text-blue-600" 
+                                  : "text-white border-white hover:bg-white/20"
+                                }
+                              >
+                                {page}
+                              </PaginationLink>
+                            </PaginationItem>
+                          );
+                        })}
+                        
+                        <PaginationItem>
+                          <PaginationNext 
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (currentPage < totalPages) {
+                                handlePageChange(currentPage + 1);
+                              }
+                            }}
+                            className={`text-white border-white hover:bg-white/20 ${currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}`}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
+        </>
       )}
 
       {/* Footer */}

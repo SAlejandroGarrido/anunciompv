@@ -222,7 +222,7 @@ const Leadpage = () => {
         </div>
       </section>
 
-      {/* Comércios e Serviços */}
+      {/* Comércios e Serviços organizados por categoria */}
       <section id="comercios" className="py-12">
         <div className="container mx-auto px-6">
           <div className="bg-orange-500 text-white py-8 mb-8 rounded-lg">
@@ -274,69 +274,85 @@ const Leadpage = () => {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {advertisements.map((ad) => (
-                <Card key={ad.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 bg-white/95 backdrop-blur-sm transform hover:scale-105 group">
-                  <div className="aspect-video bg-gray-200 overflow-hidden relative">
-                    <AutoCarousel 
-                      images={ad.photos || []}
-                      alt={ad.name}
-                    />
-                  </div>
-                  <CardContent className="p-4">
-                    <h3 className="font-bold text-lg mb-2 text-blue-700">{ad.name}</h3>
-                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">{ad.description}</p>
-                    
-                    <div className="space-y-2 mb-4">
-                      {ad.location?.address && (
-                        <div className="flex items-center gap-2 text-xs text-gray-500">
-                          <MapPin className="w-3 h-3" />
-                          <span className="truncate">{ad.location.address}</span>
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
-                          {ad.category}
-                        </span>
-                      </div>
+            <div className="space-y-12">
+              {/* Agrupar anúncios por categoria */}
+              {categories.map((category) => {
+                const categoryAds = advertisements.filter(ad => ad.category === category);
+                
+                if (categoryAds.length === 0) return null;
+                
+                return (
+                  <div key={category} className="space-y-6">
+                    {/* Título da categoria */}
+                    <div className="bg-gradient-to-r from-orange-400 to-orange-600 text-white py-4 px-6 rounded-lg shadow-lg">
+                      <h3 className="text-2xl font-bold text-center">{category}</h3>
+                      <p className="text-center text-orange-100 text-sm mt-1">
+                        {categoryAds.length} {categoryAds.length === 1 ? 'anúncio' : 'anúncios'}
+                      </p>
                     </div>
 
-                    <div className="flex gap-2">
-                      <Button 
-                        onClick={() => handleWhatsApp(ad.whatsapp || ad.phone, ad.name)}
-                        className="flex-1 bg-green-500 hover:bg-green-600 text-white text-sm"
-                        size="sm"
-                      >
-                        <MessageCircle className="w-4 h-4 mr-1" />
-                        WhatsApp
-                      </Button>
-                      
-                      {ad.phone && (
-                        <Button 
-                          onClick={() => window.open(`tel:${ad.phone}`, '_self')}
-                          variant="outline"
-                          size="sm"
-                          className="border-blue-500 text-blue-500 hover:bg-blue-50"
-                        >
-                          <Phone className="w-4 h-4" />
-                        </Button>
-                      )}
-                      
-                      {ad.instagram && (
-                        <Button 
-                          onClick={() => window.open(`https://instagram.com/${ad.instagram.replace('@', '')}`, '_blank')}
-                          variant="outline"
-                          size="sm"
-                          className="border-pink-500 text-pink-500 hover:bg-pink-50"
-                        >
-                          <Instagram className="w-4 h-4" />
-                        </Button>
-                      )}
+                    {/* Grid de anúncios da categoria */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {categoryAds.map((ad) => (
+                        <Card key={ad.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 bg-white/95 backdrop-blur-sm transform hover:scale-105 group">
+                          <div className="aspect-video bg-gray-200 overflow-hidden relative">
+                            <AutoCarousel 
+                              images={ad.photos || []}
+                              alt={ad.name}
+                            />
+                          </div>
+                          <CardContent className="p-4">
+                            <h4 className="font-bold text-lg mb-2 text-blue-700">{ad.name}</h4>
+                            <p className="text-gray-600 text-sm mb-3 line-clamp-2">{ad.description}</p>
+                            
+                            <div className="space-y-2 mb-4">
+                              {ad.location?.address && (
+                                <div className="flex items-center gap-2 text-xs text-gray-500">
+                                  <MapPin className="w-3 h-3" />
+                                  <span className="truncate">{ad.location.address}</span>
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="flex gap-2">
+                              <Button 
+                                onClick={() => handleWhatsApp(ad.whatsapp || ad.phone, ad.name)}
+                                className="flex-1 bg-green-500 hover:bg-green-600 text-white text-sm"
+                                size="sm"
+                              >
+                                <MessageCircle className="w-4 h-4 mr-1" />
+                                WhatsApp
+                              </Button>
+                              
+                              {ad.phone && (
+                                <Button 
+                                  onClick={() => window.open(`tel:${ad.phone}`, '_self')}
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-blue-500 text-blue-500 hover:bg-blue-50"
+                                >
+                                  <Phone className="w-4 h-4" />
+                                </Button>
+                              )}
+                              
+                              {ad.instagram && (
+                                <Button 
+                                  onClick={() => window.open(`https://instagram.com/${ad.instagram.replace('@', '')}`, '_blank')}
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-pink-500 text-pink-500 hover:bg-pink-50"
+                                >
+                                  <Instagram className="w-4 h-4" />
+                                </Button>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+                  </div>
+                );
+              })}
             </div>
           )}
 

@@ -132,6 +132,33 @@ const Index = () => {
       />
 
       <main className="container mx-auto px-6 py-8">
+        {/* Paginação superior compacta */}
+        {!loading && advertisements.length > 0 && totalPages > 1 && (
+          <div className="flex items-center justify-between mb-6 text-sm">
+            <div className="text-muted-foreground">
+              Página {currentPage} de {totalPages} • {totalCount} anúncios
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage <= 1}
+                className="px-2 py-1 text-xs border rounded hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Anterior
+              </button>
+              <span className="text-xs px-2">
+                {currentPage}/{totalPages}
+              </span>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage >= totalPages}
+                className="px-2 py-1 text-xs border rounded hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Próxima
+              </button>
+            </div>
+          </div>
+        )}
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
